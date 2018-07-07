@@ -29,6 +29,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
      */
     public AdvancedSerialMonitor() {
         initComponents();
+        
         port = new SerialHandler (console);
         caret = (DefaultCaret)console.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -824,7 +825,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 }
                 catch (SerialException e)
                 {
-                    e.printStackTrace();
+                    Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(Level.SEVERE, null, e);
                     log.append ("Can't open port. Port busy.\n");
                     startStop.setSelected (false);
                 }
@@ -966,12 +967,12 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         if (exportFile != null)
         {
             try {
-                java.io.FileWriter fw = new java.io.FileWriter(exportFile, !append.isSelected());
-                fw.write(console.getText());
-                fw.flush();
-                fw.close();
-                errorExportFileJl.setForeground(Color.green);
-                errorExportFileJl.setText("Console exported.");
+                try (java.io.FileWriter fw = new java.io.FileWriter(exportFile, !append.isSelected())) {
+                    fw.write(console.getText());
+                    fw.flush();
+                    errorExportFileJl.setForeground(Color.green);
+                    errorExportFileJl.setText("Console exported.");
+                }
             } catch (IOException ex) {
                 Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(Level.SEVERE, null, ex);
                 errorExportFileJl.setForeground(Color.red);
@@ -1063,22 +1064,16 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        
+        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new AdvancedSerialMonitor().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new AdvancedSerialMonitor().setVisible(true);
         });
     }
     

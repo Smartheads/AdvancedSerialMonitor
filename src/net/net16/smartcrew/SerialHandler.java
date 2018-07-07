@@ -47,7 +47,12 @@ public class SerialHandler {
                 if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
                     return;
                 
-                final String data = getIncommingData (charset);
+                String data = "";
+                try {
+                    data = getIncommingData (charset);
+                } catch (SerialException ex) {
+                    Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 
                 out.append(data);
                 
@@ -82,10 +87,21 @@ public class SerialHandler {
         }
     }
     
-    private String getIncommingData (String charset)
+    public void send (String data, String charset) throws SerialException
+    {
+        try {
+            send (data.getBytes(charset));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
+            send (data.getBytes());
+        }
+    }
+    
+    private String getIncommingData (String charset) throws SerialException
     {
         byte[] newData = new byte[port.bytesAvailable()];
-        port.readBytes(newData, newData.length);
+         if (port.readBytes(newData, newData.length) == -1)
+             throw new SerialException ();
         
         try
         {
