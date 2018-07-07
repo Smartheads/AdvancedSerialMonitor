@@ -1,4 +1,4 @@
-# AdvancedSerialMonitor
+# Advanced Serial Monitor
 
 Overview
 -
