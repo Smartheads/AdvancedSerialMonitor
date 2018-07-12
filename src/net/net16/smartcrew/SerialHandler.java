@@ -1,13 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.net16.smartcrew;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
@@ -21,22 +18,46 @@ import javax.swing.JTextArea;
 public class SerialHandler {
     private final JTextArea out;
     private SerialPort port;
-    private java.io.File streamFile;
-    public boolean streamOn;
-    private java.io.FileWriter fw;
+    private File streamFile;
+    private boolean streamOn;
+    private FileWriter fw;
     
+    /**
+     *
+     * @param output
+     */
+    public SerialHandler (JTextArea output)
+    {
+        this.out = output;
+        this.port = null;
+    }
+    
+    /**
+     *
+     */
     public void close ()
     {
         if (port != null)
+        {
             port.closePort();
+        }
     }
     
+    /**
+     *
+     * @param port
+     * @param rate
+     * @param charset
+     * @throws SerialException
+     */
     public void open (String port, int rate, String charset) throws SerialException
     {
         this.port = SerialPort.getCommPort(port);
         this.port.setBaudRate(rate);
         if (!this.port.openPort())
+        {
             throw new SerialException();
+        }
         
         this.port.addDataListener(new SerialPortDataListener() {
             @Override
@@ -69,6 +90,11 @@ public class SerialHandler {
         });
     }
     
+    /**
+     *
+     * @param data
+     * @throws SerialException
+     */
     public void send (byte[] data) throws SerialException
     {
         if (this.port != null)
@@ -87,6 +113,12 @@ public class SerialHandler {
         }
     }
     
+    /**
+     *
+     * @param data
+     * @param charset
+     * @throws SerialException
+     */
     public void send (String data, String charset) throws SerialException
     {
         try {
@@ -127,12 +159,10 @@ public class SerialHandler {
         this.open (port, rate, charset);
     }
     
-    public SerialHandler (JTextArea output)
-    {
-        this.out = output;
-        this.port = null;
-    }
-    
+    /**
+     *
+     * @return
+     */
     public boolean isOpen ()
     {
         if (this.port != null)
@@ -141,24 +171,58 @@ public class SerialHandler {
             return false;
     }
     
+    /**
+     *
+     * @return
+     */
     public String portName ()
     {
         return this.port.getSystemPortName();
     }
     
+    /**
+     *
+     * @return
+     */
     public static SerialPort[] getCommPorts()
     {
         return SerialPort.getCommPorts();
     }
     
+    /**
+     *
+     * @param file
+     * @param overwrite
+     * @throws IOException
+     */
     public void setStreamFile (java.io.File file, boolean overwrite) throws IOException
     {
         this.streamFile = file;
         this.fw = new java.io.FileWriter(this.streamFile, !overwrite);
     }
     
+    /**
+     *
+     * @return
+     */
     public java.io.File getStreamFile ()
     {
             return this.streamFile;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isStreamOn() {
+        return streamOn;
+    }
+
+    /**
+     *
+     * @param streamOn
+     */
+    public void setStreamOn(boolean streamOn) {
+        this.streamOn = streamOn;
     }
 }

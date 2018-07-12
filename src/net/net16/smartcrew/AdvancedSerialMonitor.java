@@ -1,8 +1,3 @@
- /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.net16.smartcrew;
 
 import com.fazecast.jSerialComm.SerialPort;
@@ -1019,16 +1014,16 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
     private void toggleStreamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleStreamActionPerformed
         // TODO add your handling code here:
-        if (port.streamOn)
+        if (port.isStreamOn())
         {
-            port.streamOn = false;
+            port.setStreamOn(false);
             jlStreamError.setText("");
         }
         else
         {
             if (port.getStreamFile() != null)
             {
-                port.streamOn = true;
+                port.setStreamOn(true);
                 try {
                     port.setStreamFile(port.getStreamFile(), streamOverwrite.isSelected());
                     jlStreamError.setForeground (Color.green);
