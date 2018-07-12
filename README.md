@@ -22,8 +22,8 @@ Features:
 
 Preview
 -
-<img src="/imgs/Capture.PNG" alt="Preview image 1"/>
-<img src="/imgs/Capture2.PNG" alt="Preview image 2"/>
+<img src="https://github.com/Smartheads/AdvancedSerialMonitor/tree/master/imgs/Capture.PNG" alt="Preview image 1"/>
+<img src="https://github.com/Smartheads/AdvancedSerialMonitor/tree/master/imgs/Capture2.PNG" alt="Preview image 2"/>
 
 System requirements
 -
