@@ -97,7 +97,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel12">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;p&gt;Robert Hutter&lt;br /&gt;Version 1206&lt;br /&gt;No rights reserved.&lt;/p&gt;&lt;/html&gt;"/>
+            <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;p&gt;Robert Hutter&lt;br /&gt;Version 1208&lt;br /&gt;No rights reserved.&lt;/p&gt;&lt;/html&gt;"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel13">
