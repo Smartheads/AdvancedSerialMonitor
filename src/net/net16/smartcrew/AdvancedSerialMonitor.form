@@ -422,7 +422,7 @@
                 <Component class="javax.swing.JToggleButton" name="startStop">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;h5&gt;Start&lt;/h5&gt;&lt;/html&gt;"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Use start/stop if you want to free up the current port for other usage."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Use start/stop if you want to free up the current port for other usage. (CTRL+P)"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="startStopActionPerformed"/>
@@ -1042,6 +1042,7 @@
         <Component class="javax.swing.JButton" name="clearConsole">
           <Properties>
             <Property name="text" type="java.lang.String" value="Clear"/>
+            <Property name="toolTipText" type="java.lang.String" value="Clears the console. (CTRL+L)"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearConsoleActionPerformed"/>

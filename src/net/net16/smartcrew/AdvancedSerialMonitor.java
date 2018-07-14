@@ -6,10 +6,17 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import javax.swing.text.DefaultCaret;
 import org.apache.commons.io.IOUtils;
 
@@ -28,6 +35,36 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         port = new SerialHandler (console);
         caret = (DefaultCaret)console.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        
+        Action clearConsoleAction = new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                console.setText("");
+            }
+        };
+        
+        clearConsole.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK),
+                "clear"
+        );
+        clearConsole.getActionMap().put("clear", clearConsoleAction);
+        
+        Action startStopAction = new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                AdvancedSerialMonitor.this.startStopActionPerformed(new ActionEvent(startStop, ActionEvent.ACTION_FIRST, ""));
+            }
+        };
+        
+        startStop.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK),
+                "startStop"
+        );
+        startStop.getActionMap().put("startStop", startStopAction);
     }
 
     /**
@@ -184,7 +221,6 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         setBounds(new java.awt.Rectangle(100, 100, 1000, 850));
         setIconImage(new javax.swing.ImageIcon(getClass().getResource("/imac.png")).getImage());
         setMinimumSize(new java.awt.Dimension(891, 333));
-        setPreferredSize(new java.awt.Dimension(1000, 850));
         setSize(new java.awt.Dimension(1000, 850));
 
         jLabel2.setText("<html><h4>Port</h4></html>");
@@ -219,7 +255,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         jLabel8.setText("<html><h4>Log</h4></html>");
 
         startStop.setText("<html><h5>Start</h5></html>");
-        startStop.setToolTipText("Use start/stop if you want to free up the current port for other usage.");
+        startStop.setToolTipText("Use start/stop if you want to free up the current port for other usage. (CTRL+P)");
         startStop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 startStopActionPerformed(evt);
@@ -647,6 +683,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         });
 
         clearConsole.setText("Clear");
+        clearConsole.setToolTipText("Clears the console. (CTRL+L)");
         clearConsole.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 clearConsoleActionPerformed(evt);
@@ -769,7 +806,6 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     private void clearConsoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearConsoleActionPerformed
         // TODO add your handling code here:
         console.setText("");
-        System.out.println(this.getSize());
     }//GEN-LAST:event_clearConsoleActionPerformed
 
     private void sendDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendDataActionPerformed
@@ -808,6 +844,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         if(!port.isOpen())
         {
             // turn on serial comms
+            startStop.setEnabled(false);
             if (!portComboBox.getSelectedItem().equals("Select"))
             {
                 try
@@ -830,6 +867,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 log.append ("No port selected. Please select a port.\n");
                 startStop.setSelected (false);
             }
+            startStop.setEnabled(true);
         }
         else
         {
@@ -1131,6 +1169,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
     }
 
+    //<editor-fold>
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JFrame about;
     private javax.swing.JMenuItem aboutMenuItem;
@@ -1203,7 +1242,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     private javax.swing.JToggleButton toggleStream;
     private javax.swing.JCheckBox wordWrap;
     // End of variables declaration//GEN-END:variables
-
+    //</editor-fold>
+    
     private final SerialHandler port;
     private final DefaultCaret caret;
     private java.io.File sendFile;
