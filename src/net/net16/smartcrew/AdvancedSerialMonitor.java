@@ -60,11 +60,11 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
         };
         
-        startStop.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        console.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK),
                 "startStop"
         );
-        startStop.getActionMap().put("startStop", startStopAction);
+        console.getActionMap().put("startStop", startStopAction);
     }
 
     /**
