@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextArea;
@@ -21,6 +23,8 @@ public class SerialHandler {
     private File streamFile;
     private boolean streamOn;
     private FileWriter fw;
+    private boolean printTimestamp;
+    private boolean startWithTimestamp;
     
     /**
      *
@@ -30,6 +34,8 @@ public class SerialHandler {
     {
         this.out = output;
         this.port = null;
+        this.printTimestamp = false;
+        this.startWithTimestamp = false;
     }
     
     /**
@@ -61,30 +67,96 @@ public class SerialHandler {
         
         this.port.addDataListener(new SerialPortDataListener() {
             @Override
-            public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
+            public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_RECEIVED; }
             @Override
             public void serialEvent(SerialPortEvent event)
-            {
-                if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
-                    return;
-                
+            {  
                 String data = "";
-                try {
-                    data = getIncommingData (charset);
-                } catch (SerialException ex) {
+                
+                try
+                {
+                    data = new String(event.getReceivedData(), charset);
+                }
+                catch (UnsupportedEncodingException ex)
+                {
                     Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    data = new String(event.getReceivedData()); // Loose bad encoding
                 }
                 
-                out.append(data);
-                
-                if (streamOn && streamFile != null)
+                if(printTimestamp)
                 {
-                    try {
-                        fw.write (data);
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss");  
+                    LocalDateTime now = LocalDateTime.now();  
+                    
+                    String date = "[" + dtf.format(now) + "] ";
+                    boolean toFile = (streamOn && streamFile != null);
+                    
+                    if (startWithTimestamp)
+                    {
+                        out.append(date);
+                        startWithTimestamp = false;
+                    }
+                    
+                    for (int i = 0; i < data.length(); i++)
+                    {
+                        if (data.charAt(i) == '\n')
+                        {
+                            out.append("\n");
+                            
+                            if (toFile)
+                            {
+                                try
+                                {
+                                    fw.write("\n");
+                                    fw.flush();
+                                }
+                                catch (IOException ex)
+                                {
+                                    Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                            
+                            if (i == data.length() - 1)
+                            {
+                                startWithTimestamp = true;
+                            }
+                            else
+                            {
+                                if (toFile)
+                                {
+                                    try
+                                    {
+                                        fw.write(date);
+                                        fw.flush();
+                                    }
+                                    catch (IOException ex)
+                                    {
+                                        Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                                
+                                out.append(date);
+                            }
+                        }
+                        else
+                        {
+                            out.append(Character.toString(data.charAt(i)));
+                        }
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        fw.write(data);
                         fw.flush();
-                    } catch (IOException ex) {
+                    }
+                    catch (IOException ex)
+                    {
                         Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    
+                    out.append(data);
                 }
             }
         });
@@ -126,23 +198,6 @@ public class SerialHandler {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(SerialHandler.class.getName()).log(Level.SEVERE, null, ex);
             send (data.getBytes());
-        }
-    }
-    
-    private String getIncommingData (String charset) throws SerialException
-    {
-        byte[] newData = new byte[port.bytesAvailable()];
-         if (port.readBytes(newData, newData.length) == -1)
-             throw new SerialException ();
-        
-        try
-        {
-            System.out.print(new String (newData, charset));
-            return (new String (newData, charset));
-        } catch (UnsupportedEncodingException e)
-        {
-            System.out.print(new String (newData));
-            return (new String (newData));
         }
     }
     
@@ -224,5 +279,16 @@ public class SerialHandler {
      */
     public void setStreamOn(boolean streamOn) {
         this.streamOn = streamOn;
+    }
+    
+    /**
+     * 
+     * @param b 
+     */
+    public void useTimestamp(boolean b)
+    {
+       this.printTimestamp = b;
+       if (b)
+           startWithTimestamp = true;
     }
 }

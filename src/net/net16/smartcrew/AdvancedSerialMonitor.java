@@ -147,6 +147,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         clearConsole = new javax.swing.JButton();
         autoscroll = new javax.swing.JCheckBox();
         wordWrap = new javax.swing.JCheckBox();
+        timestampCheckBox = new javax.swing.JCheckBox();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
@@ -230,7 +231,6 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(950, 500));
         setSize(new java.awt.Dimension(1105, 625));
 
-        mainPanel.setMaximumSize(null);
         mainPanel.setLayout(new java.awt.GridBagLayout());
 
         consolePanel.setLayout(new java.awt.BorderLayout());
@@ -265,9 +265,11 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         preferancesPanel.setMinimumSize(new java.awt.Dimension(831, 101));
 
-        jLabel2.setText("<html><h4>Port</h4></html>");
+        jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD, jLabel2.getFont().getSize()+2));
+        jLabel2.setText("Port");
 
-        jLabel3.setText("<html><h4>Baud rate</h4></html>");
+        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+2));
+        jLabel3.setText("Baud rate");
 
         portComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select" }));
         portComboBox.setToolTipText("Select a serial port to communicate on.");
@@ -286,7 +288,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
         });
 
-        jLabel7.setText("<html><h4>Start/stop monitor</h4></html>");
+        jLabel7.setFont(jLabel7.getFont().deriveFont(jLabel7.getFont().getStyle() | java.awt.Font.BOLD, jLabel7.getFont().getSize()+2));
+        jLabel7.setText("Start/stop monitor");
 
         jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane2.setHorizontalScrollBar(null);
@@ -299,9 +302,12 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         log.setRows(5);
         jScrollPane2.setViewportView(log);
 
-        jLabel8.setText("<html><h4>Log</h4></html>");
+        jLabel8.setFont(jLabel8.getFont().deriveFont(jLabel8.getFont().getStyle() | java.awt.Font.BOLD, jLabel8.getFont().getSize()+2));
+        jLabel8.setText("Log");
+        jLabel8.setToolTipText("");
 
-        startStop.setText("<html><h5>Start</h5></html>");
+        startStop.setFont(startStop.getFont().deriveFont(startStop.getFont().getStyle() | java.awt.Font.BOLD));
+        startStop.setText("Start");
         startStop.setToolTipText("Use start/stop if you want to free up the current port for other usage. (CTRL+P)");
         startStop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -321,7 +327,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         });
 
         baudRateSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "110", "300", "600", "1200", "2400", "4800", "9600", "14400", "19200", "38400", "57600", "115200", "128000", "256000" }));
-        baudRateSelector.setSelectedItem("115200");
+        baudRateSelector.setSelectedIndex(6);
         baudRateSelector.setToolTipText("Choose the transmision speed to communicate on. [bit/s]");
         baudRateSelector.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -331,7 +337,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         jSeparator3.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
-        jLabel9.setText("<html><h4>Decode charset</h4></html>");
+        jLabel9.setFont(jLabel9.getFont().deriveFont(jLabel9.getFont().getStyle() | java.awt.Font.BOLD, jLabel9.getFont().getSize()+2));
+        jLabel9.setText("Decode charset");
 
         decodeCharsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16" }));
         decodeCharsetSelector.setToolTipText("Select the charset used to decode recived data.");
@@ -348,7 +355,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             .addGroup(preferancesPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -362,11 +369,11 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                         .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(preferancesPanelLayout.createSequentialGroup()
                         .addGap(38, 38, 38)
-                        .addComponent(startStop, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(startStop)))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel8)
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
@@ -376,7 +383,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(preferancesPanelLayout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel9))
                     .addGroup(preferancesPanelLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(decodeCharsetSelector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -429,11 +436,12 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         sendDataPanel.setLayout(new java.awt.GridLayout(2, 1));
 
-        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 10);
+        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 18);
         flowLayout1.setAlignOnBaseline(true);
         sendDataControlPanel.setLayout(flowLayout1);
 
-        jLabel5.setText("<html><h4>Charset</h4><html>");
+        jLabel5.setFont(jLabel5.getFont().deriveFont(jLabel5.getFont().getStyle() | java.awt.Font.BOLD, jLabel5.getFont().getSize()+2));
+        jLabel5.setText("Charset");
         sendDataControlPanel.add(jLabel5);
 
         charsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16" }));
@@ -447,7 +455,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         });
         sendDataControlPanel.add(charsetSelector);
 
-        jLabel18.setText("<html><h4>Send contents of file</h4></html>");
+        jLabel18.setFont(jLabel18.getFont().deriveFont(jLabel18.getFont().getStyle() | java.awt.Font.BOLD, jLabel18.getFont().getSize()+2));
+        jLabel18.setText("Send contents of file");
         sendDataControlPanel.add(jLabel18);
 
         chooseSendFile.setText("Choose file");
@@ -467,7 +476,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         });
         sendDataControlPanel.add(sendFileButton);
 
-        jLabel6.setText("<html><h4>End message with</h4></html>");
+        jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getStyle() | java.awt.Font.BOLD, jLabel6.getFont().getSize()+2));
+        jLabel6.setText("End message with");
         sendDataControlPanel.add(jLabel6);
 
         endlComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Nothing", "Newline '\\n'", "Carrage return '\\r'", "'\\0'" }));
@@ -480,7 +490,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         sendDataPanel.add(sendDataControlPanel);
 
-        sendData.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        sendData.setFont(sendData.getFont().deriveFont(sendData.getFont().getStyle() | java.awt.Font.BOLD));
         sendData.setText("Send");
         sendData.setToolTipText("");
         sendData.addActionListener(new java.awt.event.ActionListener() {
@@ -497,7 +507,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
         });
 
-        jLabel19.setText("<html><h4>Send</h4></html>");
+        jLabel19.setFont(jLabel19.getFont().deriveFont(jLabel19.getFont().getStyle() | java.awt.Font.BOLD, jLabel19.getFont().getSize()+2));
+        jLabel19.setText("Send");
 
         javax.swing.GroupLayout sendDataSendPanelLayout = new javax.swing.GroupLayout(sendDataSendPanel);
         sendDataSendPanel.setLayout(sendDataSendPanelLayout);
@@ -519,7 +530,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 .addGroup(sendDataSendPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(prompt, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(sendData, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel19))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -527,7 +538,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Send Data", sendDataPanel);
 
-        jLabel14.setText("<html><h4>Export contents of console</h4></html>");
+        jLabel14.setFont(jLabel14.getFont().deriveFont(jLabel14.getFont().getStyle() | java.awt.Font.BOLD, jLabel14.getFont().getSize()+2));
+        jLabel14.setText("Export contents of console");
 
         chooseExportFile.setText("Choose file");
         chooseExportFile.addActionListener(new java.awt.event.ActionListener() {
@@ -536,7 +548,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
         });
 
-        jLabel15.setText("<html><h4>To file</h4></html>");
+        jLabel15.setFont(jLabel15.getFont().deriveFont(jLabel15.getFont().getStyle() | java.awt.Font.BOLD, jLabel15.getFont().getSize()+2));
+        jLabel15.setText("To file");
 
         cpToClipboard.setText("Copy to clipboard");
         cpToClipboard.addActionListener(new java.awt.event.ActionListener() {
@@ -573,7 +586,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                         .addGap(42, 42, 42)
                         .addGroup(exportConsolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(exportConsolePanelLayout.createSequentialGroup()
-                                .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel15)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(chooseExportFile)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -589,7 +602,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                         .addComponent(cpToClipboard))
                     .addGroup(exportConsolePanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel14)))
                 .addContainerGap(511, Short.MAX_VALUE))
         );
         exportConsolePanelLayout.setVerticalGroup(
@@ -619,9 +632,11 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Export Console", exportConsolePanel);
 
-        jLabel16.setText("<html><h4>Stream console</h4></html>");
+        jLabel16.setFont(jLabel16.getFont().deriveFont(jLabel16.getFont().getStyle() | java.awt.Font.BOLD, jLabel16.getFont().getSize()+2));
+        jLabel16.setText("Stream console");
 
-        jLabel17.setText("<html><h4>To file</h4></html>");
+        jLabel17.setFont(jLabel17.getFont().deriveFont(jLabel17.getFont().getStyle() | java.awt.Font.BOLD, jLabel17.getFont().getSize()+2));
+        jLabel17.setText("To file");
 
         chooseStreamFile.setText("Choose file");
         chooseStreamFile.addActionListener(new java.awt.event.ActionListener() {
@@ -657,10 +672,10 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                         .addGroup(StreamConsolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(StreamConsolePanelLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jLabel16))
                             .addGroup(StreamConsolePanelLayout.createSequentialGroup()
                                 .addGap(42, 42, 42)
-                                .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel17)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(chooseStreamFile)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -669,8 +684,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                                 .addComponent(streamOverwrite)))
                         .addGap(8, 8, 8)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(streamFileJl, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
-                .addContainerGap(516, Short.MAX_VALUE))
+                .addComponent(streamFileJl, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE)
+                .addContainerGap(515, Short.MAX_VALUE))
         );
         StreamConsolePanelLayout.setVerticalGroup(
             StreamConsolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -700,12 +715,14 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         gridBagConstraints.weightx = 0.1;
         controlPanel.add(jTabbedPane1, gridBagConstraints);
 
-        jLabel4.setText("<html><h2>Advanced Serial Monitor</h2></html>");
+        jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize()+8));
+        jLabel4.setText("Advanced Serial Monitor");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 8, 0);
         controlPanel.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -750,6 +767,13 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             }
         });
 
+        timestampCheckBox.setText("Timestamp");
+        timestampCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timestampCheckBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout optionsPanelLayout = new javax.swing.GroupLayout(optionsPanel);
         optionsPanel.setLayout(optionsPanelLayout);
         optionsPanelLayout.setHorizontalGroup(
@@ -763,7 +787,9 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 .addComponent(autoscroll)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(wordWrap)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 688, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(timestampCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 609, Short.MAX_VALUE)
                 .addComponent(clearConsole))
         );
         optionsPanelLayout.setVerticalGroup(
@@ -776,7 +802,8 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 .addGroup(optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(selectFontSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(autoscroll)
-                    .addComponent(wordWrap)))
+                    .addComponent(wordWrap)
+                    .addComponent(timestampCheckBox)))
             .addGroup(optionsPanelLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(clearConsole))
@@ -886,7 +913,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 {
                      port.open((String) portComboBox.getSelectedItem(), Integer.parseInt((String) baudRateSelector.getSelectedItem()), (String) decodeCharsetSelector.getSelectedItem());
                      log.append("Port "+(String)portComboBox.getSelectedItem() + " opened sucessfully.\n");
-                     startStop.setText("<html><h5>Stop</h5></html>");
+                     startStop.setText("Stop");
                      console.setForeground(new java.awt.Color(0, 0, 0));
                      startStop.setSelected(true);
                 }
@@ -1116,6 +1143,11 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_toggleStreamActionPerformed
 
+    private void timestampCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestampCheckBoxActionPerformed
+        // TODO add your handling code here:
+        port.useTimestamp(timestampCheckBox.isSelected());
+    }//GEN-LAST:event_timestampCheckBoxActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1149,7 +1181,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     {
         port.close();
         startStop.setSelected(false);
-        startStop.setText("<html><h5>Start</h5></html>");
+        startStop.setText("Start");
         console.setForeground(new java.awt.Color(109,109,109));
     }
     
@@ -1300,6 +1332,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     private javax.swing.JToggleButton startStop;
     private javax.swing.JLabel streamFileJl;
     private javax.swing.JCheckBox streamOverwrite;
+    private javax.swing.JCheckBox timestampCheckBox;
     private javax.swing.JToggleButton toggleStream;
     private javax.swing.JCheckBox wordWrap;
     // End of variables declaration//GEN-END:variables
