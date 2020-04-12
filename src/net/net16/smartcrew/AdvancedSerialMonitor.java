@@ -1,6 +1,9 @@
 package net.net16.smartcrew;
 
 import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortDataListener;
+import com.fazecast.jSerialComm.SerialPortEvent;
+import com.fazecast.jSerialComm.SerialPortInvalidPortException;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Toolkit;
@@ -11,11 +14,14 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import javax.swing.text.DefaultCaret;
 import org.apache.commons.io.IOUtils;
@@ -24,7 +30,17 @@ import org.apache.commons.io.IOUtils;
  *
  * @author rohu7
  */
-public class AdvancedSerialMonitor extends javax.swing.JFrame {
+public final class AdvancedSerialMonitor extends JFrame implements SerialPortDataListener
+{
+    private SerialPort port;
+    private final DefaultCaret caret;
+    private java.io.File sendFile;
+    private java.io.File exportFile;
+    private java.io.File streamFile;
+    private java.io.FileWriter streamFileWriter;
+    private String decodeCharset;
+    private String encodeCharset;
+    private boolean startWithTimestamp;
 
     /**
      * Creates new form AdvancedSerialMonitor
@@ -32,7 +48,9 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     public AdvancedSerialMonitor() {
         initComponents();
         
-        port = new SerialHandler (console);
+        // Initialize variables
+        startWithTimestamp = false;
+        port = null;
         caret = (DefaultCaret)console.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         
@@ -66,7 +84,106 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         );
         console.getActionMap().put("startStop", startStopAction);
     }
+    
+    @Override
+    public int getListeningEvents() {
+        return SerialPort.LISTENING_EVENT_DATA_RECEIVED;
+    }
 
+    @Override
+    public void serialEvent(SerialPortEvent event)
+    {  
+        String data = "";
+        
+        try
+        {
+            data = new String(event.getReceivedData(), decodeCharset);
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            data = new String(event.getReceivedData()); // Loose bad encoding
+        }
+
+        if(timestampCheckBox.isSelected())
+        {
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss");  
+            LocalDateTime now = LocalDateTime.now();  
+
+            String date = "[" + dtf.format(now) + "] ";
+            boolean toFile = (toggleStream.isSelected() && streamFile != null);
+
+            if (startWithTimestamp)
+            {
+                console.append(date);
+                startWithTimestamp = false;
+            }
+
+            for (int i = 0; i < data.length(); i++)
+            {
+                if (data.charAt(i) == '\n')
+                {
+                    console.append("\n");
+
+                    if (toFile)
+                    {
+                        try
+                        {
+                            streamFileWriter.write("\n");
+                            streamFileWriter.flush();
+                        }
+                        catch (IOException ex)
+                        {
+                            
+                        }
+                    }
+
+                    if (i == data.length() - 1)
+                    {
+                        startWithTimestamp = true;
+                    }
+                    else
+                    {
+                        if (toFile)
+                        {
+                            try
+                            {
+                                streamFileWriter.write(date);
+                                streamFileWriter.flush();
+                            }
+                            catch (IOException ex)
+                            {
+                                
+                            }
+                        }
+
+                        console.append(date);
+                    }
+                }
+                else
+                {
+                    console.append(Character.toString(data.charAt(i)));
+                }
+            }
+        }
+        else
+        {
+            if (toggleStream.isSelected() && streamFile != null)
+            {
+                try
+                {
+                    streamFileWriter.write(data);
+                    streamFileWriter.flush();
+                }
+                catch (IOException ex)
+                {
+                    
+                }
+            }
+
+            console.append(data);
+        }
+    }
+ 
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -903,46 +1020,29 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
     private void startStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startStopActionPerformed
         // TODO add your handling code here:
-        if(!port.isOpen())
+        if(port == null)
         {
-            // turn on serial comms
-            startStop.setEnabled(false);
-            if (!portComboBox.getSelectedItem().equals("Select"))
-            {
-                try
-                {
-                     port.open((String) portComboBox.getSelectedItem(), Integer.parseInt((String) baudRateSelector.getSelectedItem()), (String) decodeCharsetSelector.getSelectedItem());
-                     log.append("Port "+(String)portComboBox.getSelectedItem() + " opened sucessfully.\n");
-                     startStop.setText("Stop");
-                     console.setForeground(new java.awt.Color(0, 0, 0));
-                     startStop.setSelected(true);
-                }
-                catch (SerialException e)
-                {
-                    Logger.getLogger(AdvancedSerialMonitor.class.getName()).log(Level.SEVERE, null, e);
-                    log.append ("Can't open port. Port busy.\n");
-                    startStop.setSelected (false);
-                }
-                
-            } else
-            {
-                log.append ("No port selected. Please select a port.\n");
-                startStop.setSelected (false);
-            }
-            startStop.setEnabled(true);
+            startComm();
         }
         else
         {
-            // shut down serial comms
-            stopComm();
-            log.append ("Port closed.\n");
+            if (port.isOpen())
+            {
+                // shut down serial comms
+                stopComm();
+                log.append ("Port closed.\n");
+            }
+            else
+            {
+                startComm();
+            }
         }
     }//GEN-LAST:event_startStopActionPerformed
 
     private void portComboBoxPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_portComboBoxPopupMenuWillBecomeVisible
         // TODO add your handling code here:
         log.append("Scanning ports...\n");
-        SerialPort[] ports = SerialHandler.getCommPorts();
+        SerialPort[] ports = SerialPort.getCommPorts();
         portComboBox.removeAllItems();
         for (SerialPort port1 : ports) {
             portComboBox.addItem(port1.getSystemPortName());
@@ -975,7 +1075,7 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         // TODO add your handling code here:
-        port.close();
+        port.closePort();
         dispose();
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
@@ -993,7 +1093,9 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
             sendFile = fileChooser.getSelectedFile();
             jlSendFile.setText(sendFile.getName());
             jlSendError.setText("");
-        } else {
+        }
+        else
+        {
             jlSendFile.setText("");
             sendFile = null;
         }
@@ -1003,17 +1105,22 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (sendFile != null)
         {
-            try
+            if (port.isOpen())
             {
-                
-                port.send(IOUtils.toByteArray(new java.io.FileInputStream(sendFile)));
-                jlSendError.setForeground(Color.green);
-                jlSendError.setText("Contents of file sent.");
-            } catch (java.io.IOException ioe)
-            {
-                jlSendError.setForeground(Color.red);
-                jlSendError.setText("Error reading file. Please try again.");
-            } catch (SerialException se)
+                try
+                {
+
+                    byte[] buff = IOUtils.toByteArray(new java.io.FileInputStream(sendFile));
+                    port.writeBytes(buff, buff.length);
+                    jlSendError.setForeground(Color.green);
+                    jlSendError.setText("Contents of file sent.");
+                } catch (java.io.IOException ioe)
+                {
+                    jlSendError.setForeground(Color.red);
+                    jlSendError.setText("Error reading file. Please try again.");
+                }
+            }
+            else
             {
                 jlSendError.setForeground(Color.red);
                 jlSendError.setText("Can't send data. Port not open.");
@@ -1090,21 +1197,23 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         int returnVal = fileChooser.showOpenDialog(AdvancedSerialMonitor.this);
 
         if (returnVal == javax.swing.JFileChooser.APPROVE_OPTION) {
-            try {
-                port.setStreamFile (fileChooser.getSelectedFile(), streamOverwrite.isSelected());
-                streamFileJl.setText(port.getStreamFile().getName());
+            try
+            {
+                streamFile = fileChooser.getSelectedFile();
+                streamFileWriter = new java.io.FileWriter(streamFile, !streamOverwrite.isSelected());
+                streamFileJl.setText(streamFile.getName());
                 jlStreamError.setText("");
-            } catch (IOException ex) {
+            }
+            catch (IOException ex)
+            {
                 jlStreamError.setForeground(Color.red);
                 jlStreamError.setText("Can't open file. Please try again.");
             }
-        } else {
+        }
+        else
+        {
             streamFileJl.setText("");
-            try {
-                port.setStreamFile(null, false);
-            } catch (IOException ex) {
-                // Nothing here. Internal error.
-            }
+            streamFile = null;
         }
     }//GEN-LAST:event_chooseStreamFileActionPerformed
 
@@ -1114,18 +1223,13 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
 
     private void toggleStreamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleStreamActionPerformed
         // TODO add your handling code here:
-        if (port.isStreamOn())
+        if (toggleStream.isSelected())
         {
-            port.setStreamOn(false);
-            jlStreamError.setText("");
-        }
-        else
-        {
-            if (port.getStreamFile() != null)
+            if (streamFile != null)
             {
-                port.setStreamOn(true);
-                try {
-                    port.setStreamFile(port.getStreamFile(), streamOverwrite.isSelected());
+                try
+                {
+                    streamFileWriter = new java.io.FileWriter(streamFile, !streamOverwrite.isSelected());
                     jlStreamError.setForeground (Color.green);
                     jlStreamError.setText("Stream opened.");
                 } catch (IOException ex) {
@@ -1141,11 +1245,20 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
                 toggleStream.setSelected(false);
             }
         }
+        else
+        {
+            jlStreamError.setText("");
+        }
     }//GEN-LAST:event_toggleStreamActionPerformed
 
     private void timestampCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestampCheckBoxActionPerformed
         // TODO add your handling code here:
-        port.useTimestamp(timestampCheckBox.isSelected());
+        timestampCheckBox.isSelected();
+        
+        if (timestampCheckBox.isSelected())
+        {
+            startWithTimestamp = true;
+        }
     }//GEN-LAST:event_timestampCheckBoxActionPerformed
 
     /**
@@ -1177,33 +1290,72 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
         });
     }
     
+    /**
+     * 
+     */
     private void stopComm ()
     {
-        port.close();
+        port.removeDataListener();
+        port.closePort();
         startStop.setSelected(false);
         startStop.setText("Start");
         console.setForeground(new java.awt.Color(109,109,109));
     }
     
+    /**
+     * 
+     */
+    private void startComm()
+    {
+        if (portComboBox.getSelectedItem().equals("Select"))
+        {
+            log.append ("No port selected. Please select a port.\n");
+            startStop.setSelected (false);
+            return;
+        }
+
+        // turn on serial comms
+        startStop.setEnabled(false);
+        port = SerialPort.getCommPort((String) portComboBox.getSelectedItem());
+        port.setBaudRate(Integer.parseInt((String) baudRateSelector.getSelectedItem()));
+        port.openPort();
+        port.addDataListener(AdvancedSerialMonitor.this);
+        decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
+        log.append("Port "+(String)portComboBox.getSelectedItem() + " opened sucessfully.\n");
+        startStop.setText("Stop");
+        console.setForeground(new java.awt.Color(0, 0, 0));
+        startStop.setSelected(true);
+        startStop.setEnabled(true);
+    }
+    
     private void updateComm ()
     {
-        if (port.isOpen())
+        if (port != null)
         {
-            if (portComboBox.getItemCount() > 0)
+            if (port.isOpen())
             {
-                if (!portComboBox.getSelectedItem().equals("Select"))
-                    try
-                    {
-                        port.update((String) portComboBox.getSelectedItem(), Integer.parseInt((String) baudRateSelector.getSelectedItem()), (String) decodeCharsetSelector.getSelectedItem());
-                    }
-                    catch (Exception e)
-                    {
-                        log.append ("Port closed unexpectedly...\n");
-                    }
-                else
+                if (portComboBox.getItemCount() > 0)
                 {
-                    log.append("Port closed unexpectedly...");
-                    stopComm();
+                    if (!portComboBox.getSelectedItem().equals("Select"))
+                        try
+                        {
+                            port.removeDataListener();
+                            port.closePort();
+                            port = SerialPort.getCommPort((String) portComboBox.getSelectedItem());
+                            port.setBaudRate(Integer.parseInt((String) baudRateSelector.getSelectedItem()));
+                            port.openPort();
+                            port.addDataListener(AdvancedSerialMonitor.this);
+                            decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
+                        }
+                        catch (SerialPortInvalidPortException | NumberFormatException e)
+                        {
+                            log.append ("Port closed unexpectedly...\n");
+                        }
+                    else
+                    {
+                        log.append("Port closed unexpectedly...");
+                        stopComm();
+                    }
                 }
             }
         }
@@ -1211,49 +1363,55 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     
     private void sendPrompt ()
     {
-        try
+        if (port.isOpen())
+        {
+            if (prompt.getText().length() > 0 || endlComboBox.getSelectedIndex() != 0)
             {
-                if (prompt.getText().length() > 0 || endlComboBox.getSelectedIndex() != 0)
+                String endl = "";
+
+                switch (endlComboBox.getSelectedIndex())
                 {
-                    String endl = "";
-                    
-                    switch (endlComboBox.getSelectedIndex())
-                    {
-                        case 0: // Nothing
-                        break;
-                        
-                        case 1: // \n
-                            endl = "\n";
-                        break;
-                            
-                        case 2: // \r
-                            endl = "\r";
-                        break;
-                        
-                        case 3:
-                            endl = "\0";
-                        break;
-                    }
-                    
-                    port.send((prompt.getText()+endl).getBytes((String) charsetSelector.getSelectedItem()));
+                    case 0: // Nothing
+                    break;
+
+                    case 1: // \n
+                        endl = "\n";
+                    break;
+
+                    case 2: // \r
+                        endl = "\r";
+                    break;
+
+                    case 3:
+                        endl = "\0";
+                    break;
+                }
+
+                try
+                {
+                    byte[] buff = (prompt.getText()+endl).getBytes((String) charsetSelector.getSelectedItem());
+                    port.writeBytes(buff, buff.length);
+
                     prompt.setText("");
                     jlSendError.setText("");
                 }
-                else
+                catch (UnsupportedEncodingException e)
                 {
                     jlSendError.setForeground(Color.red);
-                    jlSendError.setText("You can't send nothing. Please enter something.");
+                    jlSendError.setText("Can't send data. Please select another charset.\n");
                 }
-
-            } catch (SerialException se)
-            {
-                jlSendError.setForeground(Color.red);
-                jlSendError.setText("Can't send data. Port not open.");
-            } catch (UnsupportedEncodingException e)
-            {
-                jlSendError.setForeground(Color.red);
-                jlSendError.setText("Can't send data. Please select another charset.\n");
             }
+            else
+            {
+                jlSendError.setForeground(Color.red);
+                jlSendError.setText("You can't send nothing. Please enter something.");
+            }
+        }
+        else
+        {
+            jlSendError.setForeground(Color.red);
+            jlSendError.setText("Can't send data. Port not open.");
+        }
     }
 
     //<editor-fold>
@@ -1337,9 +1495,4 @@ public class AdvancedSerialMonitor extends javax.swing.JFrame {
     private javax.swing.JCheckBox wordWrap;
     // End of variables declaration//GEN-END:variables
     //</editor-fold>
-    
-    private final SerialHandler port;
-    private final DefaultCaret caret;
-    private java.io.File sendFile;
-    private java.io.File exportFile;
 }
