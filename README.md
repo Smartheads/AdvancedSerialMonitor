@@ -4,9 +4,13 @@ Overview
 -
 Advanced Serial Monitor is an advanced application designed to simplify development of devices, that communicate over serial ports.
 
-Usage
+How to install & run
 -
-You can find the .jar file in the /dist folder. Simply run it (IMPORTANT: the jar needs to have direct access to its libraries, so make sure to keep the /lib subfolder. You should create a desktop shortcut if you want more confortable access.
+1. Go to the releases page to find a list of Advanced Serial Monitor versions.
+2. Download .zip wiht the latest release to your installation folder (something like C:\Program Files\ASM\).
+3. Unpack the compressed file.
+3. Right click on AdvancedSerialMonitor.jar and select "Send to desktop". This will create a desktop icon.
+4. Double click the file and Advanced Serial Monitor will open.
 
 Features:
 -
@@ -19,6 +23,11 @@ Features:
 * Save the serial ports output to a file
 * Stream the serial ports output to a file
 * Change serial port settings (i.e. baud rate) on the fly
+* Print timestamp with every message
+
+Coming soon!
+-
+We've got a killer new update in the workings. We'll be adding a serial plotter window, which can display an unlimited amount of graphs based on customizable data input rules.
 
 Preview
 -
