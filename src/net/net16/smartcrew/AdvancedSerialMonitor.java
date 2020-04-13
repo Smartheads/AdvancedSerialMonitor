@@ -570,7 +570,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                 .addGap(19, 19, 19))
         );
 
-        jTabbedPane1.addTab("Preferances", preferancesPanel);
+        jTabbedPane1.addTab("Preferences", preferancesPanel);
 
         sendDataPanel.setLayout(new java.awt.GridLayout(2, 1));
 
