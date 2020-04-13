@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
@@ -41,6 +42,9 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private String decodeCharset;
     private String encodeCharset;
     private boolean startWithTimestamp;
+    
+    private final ImageIcon onIcon;
+    private final ImageIcon offIcon;
 
     /**
      * Creates new form AdvancedSerialMonitor
@@ -53,6 +57,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         port = null;
         caret = (DefaultCaret)console.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        onIcon = new ImageIcon(getClass().getResource("/green_dot.png"));
+        offIcon = new ImageIcon(getClass().getResource("/red_dot.png"));
+        onOffLabel.setIcon(offIcon);
+        encodeCharset = (String) charsetSelector.getSelectedItem();
+        decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
         
         Action clearConsoleAction = new AbstractAction()
         {
@@ -224,6 +233,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         jSeparator3 = new javax.swing.JSeparator();
         jLabel9 = new javax.swing.JLabel();
         decodeCharsetSelector = new javax.swing.JComboBox<>();
+        onOffLabel = new javax.swing.JLabel();
         sendDataPanel = new javax.swing.JPanel();
         sendDataControlPanel = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -406,7 +416,8 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         });
 
         jLabel7.setFont(jLabel7.getFont().deriveFont(jLabel7.getFont().getStyle() | java.awt.Font.BOLD, jLabel7.getFont().getSize()+2));
-        jLabel7.setText("Start/stop monitor");
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel7.setText("Start/stop");
 
         jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane2.setHorizontalScrollBar(null);
@@ -465,6 +476,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
             }
         });
 
+        onOffLabel.setText("X");
+        onOffLabel.setMaximumSize(new java.awt.Dimension(16, 16));
+        onOffLabel.setMinimumSize(new java.awt.Dimension(16, 16));
+        onOffLabel.setPreferredSize(new java.awt.Dimension(16, 16));
+
         javax.swing.GroupLayout preferancesPanelLayout = new javax.swing.GroupLayout(preferancesPanel);
         preferancesPanel.setLayout(preferancesPanelLayout);
         preferancesPanelLayout.setHorizontalGroup(
@@ -482,17 +498,20 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(preferancesPanelLayout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(preferancesPanelLayout.createSequentialGroup()
-                        .addGap(38, 38, 38)
-                        .addComponent(startStop)))
-                .addGap(18, 18, 18)
+                        .addGap(10, 10, 10)
+                        .addComponent(onOffLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(startStop)
+                        .addGap(49, 49, 49))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, preferancesPanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(13, 13, 13)))
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel8)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(clearLog)
                 .addGap(18, 18, 18)
@@ -537,10 +556,12 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(startStop, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(startStop, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(onOffLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(27, 27, 27))))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, preferancesPanelLayout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(clearLog)
                     .addGroup(preferancesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -561,7 +582,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         jLabel5.setText("Charset");
         sendDataControlPanel.add(jLabel5);
 
-        charsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16" }));
+        charsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16", "Don't encode" }));
         charsetSelector.setToolTipText("Select the charset used to encoded the data that will be transmitted.");
         charsetSelector.setMinimumSize(new java.awt.Dimension(81, 21));
         charsetSelector.setPreferredSize(new java.awt.Dimension(90, 21));
@@ -1042,14 +1063,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private void portComboBoxPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_portComboBoxPopupMenuWillBecomeVisible
         // TODO add your handling code here:
         log.append("Scanning ports...\n");
-        SerialPort[] ports = SerialPort.getCommPorts();
-        portComboBox.removeAllItems();
-        for (SerialPort port1 : ports) {
-            portComboBox.addItem(port1.getSystemPortName());
-        }
-        
-        if (portComboBox.getItemCount() < 1)
-            portComboBox.addItem("Select");
+        refreshPortList();
         
     }//GEN-LAST:event_portComboBoxPopupMenuWillBecomeVisible
 
@@ -1060,7 +1074,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
     private void charsetSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_charsetSelectorActionPerformed
         // TODO add your handling code here:
-        
+        encodeCharset = (String) charsetSelector.getSelectedItem();
     }//GEN-LAST:event_charsetSelectorActionPerformed
 
     private void baudRateSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_baudRateSelectorActionPerformed
@@ -1070,7 +1084,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
     private void decodeCharsetSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decodeCharsetSelectorActionPerformed
         // TODO add your handling code here:
-        updateComm();
+        decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
     }//GEN-LAST:event_decodeCharsetSelectorActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -1295,11 +1309,26 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
      */
     private void stopComm ()
     {
+        String prevPort = port.getSystemPortName();
+        
         port.removeDataListener();
         port.closePort();
         startStop.setSelected(false);
         startStop.setText("Start");
         console.setForeground(new java.awt.Color(109,109,109));
+        onOffLabel.setIcon(offIcon);
+        
+        refreshPortList();
+        
+        // Check to see if previous port is still available
+        for (int i = 0; i < portComboBox.getItemCount(); i++)
+        {
+            if (((String) portComboBox.getItemAt(i)).equals(prevPort))
+            {
+                portComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
     }
     
     /**
@@ -1307,6 +1336,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
      */
     private void startComm()
     {
+        if (!startStop.isSelected())
+        {
+            stopComm();
+        }
+        
         if (portComboBox.getSelectedItem().equals("Select"))
         {
             log.append ("No port selected. Please select a port.\n");
@@ -1323,6 +1357,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
         log.append("Port "+(String)portComboBox.getSelectedItem() + " opened sucessfully.\n");
         startStop.setText("Stop");
+        onOffLabel.setIcon(onIcon);
         console.setForeground(new java.awt.Color(0, 0, 0));
         startStop.setSelected(true);
         startStop.setEnabled(true);
@@ -1345,11 +1380,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                             port.setBaudRate(Integer.parseInt((String) baudRateSelector.getSelectedItem()));
                             port.openPort();
                             port.addDataListener(AdvancedSerialMonitor.this);
-                            decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
                         }
                         catch (SerialPortInvalidPortException | NumberFormatException e)
                         {
                             log.append ("Port closed unexpectedly...\n");
+                            onOffLabel.setIcon(offIcon);
                         }
                     else
                     {
@@ -1387,18 +1422,65 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                     break;
                 }
 
-                try
-                {
-                    byte[] buff = (prompt.getText()+endl).getBytes((String) charsetSelector.getSelectedItem());
-                    port.writeBytes(buff, buff.length);
+                if (encodeCharset.equals("Don't encode"))
+                {   
+                    try
+                    {
+                        String text = prompt.getText().trim();
+                        // Calculate length of buffer
+                        int l = 1;
+                        for (char c : text.toCharArray())
+                        {
+                            if (c == ',')
+                            {
+                                l++;
+                            }
+                        }
 
-                    prompt.setText("");
-                    jlSendError.setText("");
+                        byte[] buff = new byte[l];
+                        l = 0;
+                        StringBuilder sb = new StringBuilder("");
+
+                        // Extract numbers
+                        for (int i = 0; i < text.length(); i++)
+                        {
+                            if (text.charAt(i) == ',' || i == text.length() - 1)
+                            {
+                                buff[l++] = (byte) Integer.parseInt(sb.toString());
+                            }
+                            else
+                            {
+                                sb.append(text.charAt(i));
+                            }
+                        }
+
+                        // Send numbers
+                        port.writeBytes(buff, buff.length);
+                        
+                        prompt.setText("");
+                        jlSendError.setText("");
+                    }
+                    catch(NumberFormatException e)
+                    {
+                        jlSendError.setForeground(Color.red);
+                        jlSendError.setText("No charset selected. Can't encode character.");
+                    }
                 }
-                catch (UnsupportedEncodingException e)
+                else
                 {
-                    jlSendError.setForeground(Color.red);
-                    jlSendError.setText("Can't send data. Please select another charset.\n");
+                    try
+                    {
+                        byte[] buff = (prompt.getText()+endl).getBytes(encodeCharset);
+                        port.writeBytes(buff, buff.length);
+
+                        prompt.setText("");
+                        jlSendError.setText("");
+                    }
+                    catch (UnsupportedEncodingException e)
+                    {
+                        jlSendError.setForeground(Color.red);
+                        jlSendError.setText("Can't send data. Please select another charset.\n");
+                    }
                 }
             }
             else
@@ -1412,6 +1494,18 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
             jlSendError.setForeground(Color.red);
             jlSendError.setText("Can't send data. Port not open.");
         }
+    }
+    
+    private void refreshPortList ()
+    {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        portComboBox.removeAllItems();
+        for (SerialPort port1 : ports) {
+            portComboBox.addItem(port1.getSystemPortName());
+        }
+        
+        if (portComboBox.getItemCount() < 1)
+            portComboBox.addItem("Select");
     }
 
     //<editor-fold>
@@ -1477,6 +1571,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private javax.swing.JTextArea log;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JButton okButton;
+    private javax.swing.JLabel onOffLabel;
     private javax.swing.JPanel optionsPanel;
     private javax.swing.JComboBox<String> portComboBox;
     private javax.swing.JPanel preferancesPanel;
