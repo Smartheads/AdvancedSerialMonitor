@@ -25,6 +25,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import javax.swing.text.DefaultCaret;
+import net.net16.smartcrew.plotter.GraphPanel;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -45,6 +46,8 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     
     private final ImageIcon onIcon;
     private final ImageIcon offIcon;
+    
+    private GraphPlotter gp;
 
     /**
      * Creates new form AdvancedSerialMonitor
@@ -92,6 +95,10 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                 "startStop"
         );
         console.getActionMap().put("startStop", startStopAction);
+        
+        java.awt.EventQueue.invokeLater(() -> {
+            gp = new GraphPlotter();
+        });
     }
     
     @Override
@@ -281,6 +288,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         exitMenuItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         alwaysOnTopCheckBox = new javax.swing.JCheckBoxMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         about.setTitle("About Advanced Serial Monitor");
         about.setAlwaysOnTop(true);
@@ -991,6 +999,15 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         });
         jMenu2.add(alwaysOnTopCheckBox);
 
+        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/line_graph.png"))); // NOI18N
+        jMenuItem1.setText("Open Graph Plotter");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem1);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -1275,6 +1292,12 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         }
     }//GEN-LAST:event_timestampCheckBoxActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        // TODO add your handling code here:
+        gp.setLocation(this.getX() + 50, this.getY() + 50);
+        gp.setVisible(true);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1302,6 +1325,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         java.awt.EventQueue.invokeLater(() -> {
             new AdvancedSerialMonitor().setVisible(true);
         });
+        
     }
     
     /**
@@ -1558,6 +1582,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
