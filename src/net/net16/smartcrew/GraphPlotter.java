@@ -34,10 +34,19 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
         
-        graphs = new ArrayList<>();
-        graphs.add(new GraphPanel());
-        graphAreaPanel.add(graphs.get(0));
-        graphAreaPanel.add(new javax.swing.JLabel("TEST"));
+        graphs = new ArrayList<>(0);
+        addGraph();
+    }
+    
+    /**
+     * 
+     */
+    private void addGraph()
+    {
+        GraphPanel gp = new GraphPanel(graphs.size());
+        graphs.add(gp);
+        graphAreaPanel.add(gp, gp.constraints);
+        graphAreaPanel.revalidate();
     }
 
     /**
@@ -89,6 +98,7 @@ public class GraphPlotter extends javax.swing.JFrame
         setTitle("Serial Graph Plotter");
         setIconImage(new ImageIcon(getClass().getResource("/line_graph.png")).getImage());
         setMinimumSize(new java.awt.Dimension(560, 500));
+        setPreferredSize(new java.awt.Dimension(753, 680));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+2));
@@ -97,6 +107,11 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         jButton1.setText("Add graph");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jSeparator3.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
@@ -250,6 +265,8 @@ public class GraphPlotter extends javax.swing.JFrame
 
         processingTablePanel.add(tableHeaderPanel, java.awt.BorderLayout.PAGE_START);
 
+        tablePanel.setMinimumSize(new java.awt.Dimension(31, 134));
+        tablePanel.setPreferredSize(new java.awt.Dimension(606, 134));
         tablePanel.setLayout(new java.awt.GridBagLayout());
 
         tableScrollPane.setBorder(null);
@@ -365,17 +382,7 @@ public class GraphPlotter extends javax.swing.JFrame
 
         ContentPanel.setLayout(new java.awt.GridBagLayout());
 
-        javax.swing.GroupLayout graphAreaPanelLayout = new javax.swing.GroupLayout(graphAreaPanel);
-        graphAreaPanel.setLayout(graphAreaPanelLayout);
-        graphAreaPanelLayout.setHorizontalGroup(
-            graphAreaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 733, Short.MAX_VALUE)
-        );
-        graphAreaPanelLayout.setVerticalGroup(
-            graphAreaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 207, Short.MAX_VALUE)
-        );
-
+        graphAreaPanel.setLayout(new java.awt.GridBagLayout());
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -385,7 +392,23 @@ public class GraphPlotter extends javax.swing.JFrame
         gridBagConstraints.weighty = 0.1;
         ContentPanel.add(graphAreaPanel, gridBagConstraints);
 
+        contentScrollPane.setViewportView(ContentPanel);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.1;
+        gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
+        getContentPane().add(contentScrollPane, gridBagConstraints);
+
         bottomAddGraphButton.setText("Add graph");
+        bottomAddGraphButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bottomAddGraphButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout footerPanelLayout = new javax.swing.GroupLayout(footerPanel);
         footerPanel.setLayout(footerPanelLayout);
@@ -399,7 +422,7 @@ public class GraphPlotter extends javax.swing.JFrame
         footerPanelLayout.setVerticalGroup(
             footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(footerPanelLayout.createSequentialGroup()
-                .addGap(0, 18, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
                 .addGroup(footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bottomAddGraphButton, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jSeparator2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -407,22 +430,12 @@ public class GraphPlotter extends javax.swing.JFrame
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.weightx = 0.1;
-        ContentPanel.add(footerPanel, gridBagConstraints);
-
-        contentScrollPane.setViewportView(ContentPanel);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.weighty = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
-        getContentPane().add(contentScrollPane, gridBagConstraints);
+        getContentPane().add(footerPanel, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -447,6 +460,16 @@ public class GraphPlotter extends javax.swing.JFrame
         // TODO add your handling code here:
         
     }//GEN-LAST:event_newVariableButtonActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        addGraph();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void bottomAddGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bottomAddGraphButtonActionPerformed
+        // TODO add your handling code here:
+        addGraph();
+    }//GEN-LAST:event_bottomAddGraphButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel ContentPanel;
