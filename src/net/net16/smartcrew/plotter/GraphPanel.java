@@ -26,6 +26,7 @@ import javax.swing.SwingConstants;
  */
 public class GraphPanel extends JPanel
 {
+    String name;
     Graph g;
     JPanel headerPanel;
     JPanel contentPanel;
@@ -40,13 +41,14 @@ public class GraphPanel extends JPanel
     public GraphPanel(int gridy)
     {
         super(new BorderLayout());
+        
         constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = 0.1;
         constraints.gridx = 0;
         constraints.gridy = gridy;
-        constraints.insets = new Insets(0, 0, 10, 0);
+        constraints.insets = new Insets(0, 0, 10, 5);
         
         // Setup headerPanel
         headerPanel = new JPanel(new GridBagLayout());
@@ -74,7 +76,9 @@ public class GraphPanel extends JPanel
         jsC.weightx = 0.1;
         jsC.insets = new Insets(0, 6, 0, 0);
         
-        title = new JLabel("Graph #" + Integer.toString(gridy + 1));
+        title = new JLabel();
+        name = "Graph #" + Integer.toString(gridy + 1);
+        title.setText(name);
         title.setFont(title.getFont().deriveFont(title.getFont().getStyle() | java.awt.Font.BOLD, title.getFont().getSize()+2));
         
         titleC.gridx = 0;
@@ -147,6 +151,35 @@ public class GraphPanel extends JPanel
             contentPanel.setVisible(false);
             hideShowButton.setText("Show");
         }
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getGraphName()
+    {
+        return this.name;
+    }
+    
+    /**
+     * 
+     * @param name 
+     */
+    public void setGraphName(String name)
+    {
+        this.name = name;
+        title.setText(name);
+    }
+    
+    /**
+     * 
+     * @param i 
+     */
+    public void updatePosition(int i)
+    {
+        setGraphName("Graph #" + Integer.toString(i + 1));
+        constraints.gridy = i;
     }
 }
 

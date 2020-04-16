@@ -34,7 +34,7 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
         
-        graphs = new ArrayList<>(0);
+        graphs = new ArrayList<>();
         addGraph();
     }
     
@@ -45,8 +45,27 @@ public class GraphPlotter extends javax.swing.JFrame
     {
         GraphPanel gp = new GraphPanel(graphs.size());
         graphs.add(gp);
-        graphAreaPanel.add(gp, gp.constraints);
-        graphAreaPanel.revalidate();
+        contentPanel.add(gp, gp.constraints);
+        contentPanel.revalidate();
+        refreshRemoveGraphComboBox();
+    }
+    
+    /**
+     * 
+     */
+    private void refreshRemoveGraphComboBox()
+    {
+        removeGraphComboBox.removeAllItems();
+       
+        for (int i = 0; i < graphs.size(); i++)
+        {
+            removeGraphComboBox.addItem(graphs.get(i).getGraphName());
+}
+            
+        if (graphs.isEmpty())
+        {
+            removeGraphComboBox.addItem("Select");
+        }
     }
 
     /**
@@ -62,7 +81,7 @@ public class GraphPlotter extends javax.swing.JFrame
         optionsPanel = new javax.swing.JTabbedPane();
         toolsPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        topAddGraphButton = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JSeparator();
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -70,6 +89,8 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel5 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        removeGraphButton = new javax.swing.JButton();
+        removeGraphComboBox = new javax.swing.JComboBox<>();
         preferencesPanel = new javax.swing.JPanel();
         importPanel = new javax.swing.JPanel();
         exportPanel = new javax.swing.JPanel();
@@ -88,8 +109,7 @@ public class GraphPlotter extends javax.swing.JFrame
         deleteVariableButton = new javax.swing.JButton();
         deleteVariableComboBox = new javax.swing.JComboBox<>();
         contentScrollPane = new javax.swing.JScrollPane();
-        ContentPanel = new javax.swing.JPanel();
-        graphAreaPanel = new javax.swing.JPanel();
+        contentPanel = new javax.swing.JPanel();
         footerPanel = new javax.swing.JPanel();
         bottomAddGraphButton = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
@@ -97,19 +117,19 @@ public class GraphPlotter extends javax.swing.JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Serial Graph Plotter");
         setIconImage(new ImageIcon(getClass().getResource("/line_graph.png")).getImage());
-        setMinimumSize(new java.awt.Dimension(560, 500));
-        setPreferredSize(new java.awt.Dimension(753, 680));
+        setMinimumSize(new java.awt.Dimension(795, 500));
+        setPreferredSize(new java.awt.Dimension(750, 680));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+2));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Graphing");
+        jLabel1.setText("Add or remove graphs");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jButton1.setText("Add graph");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        topAddGraphButton.setText("Add graph");
+        topAddGraphButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                topAddGraphButtonActionPerformed(evt);
             }
         });
 
@@ -129,16 +149,39 @@ public class GraphPlotter extends javax.swing.JFrame
         jButton3.setText("Restart");
         jButton3.setEnabled(false);
 
+        removeGraphButton.setText("Remove");
+        removeGraphButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeGraphButtonActionPerformed(evt);
+            }
+        });
+
+        removeGraphComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        removeGraphComboBox.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
+            }
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
+            }
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
+                removeGraphComboBoxPopupMenuWillBecomeVisible(evt);
+            }
+        });
+
         javax.swing.GroupLayout toolsPanelLayout = new javax.swing.GroupLayout(toolsPanel);
         toolsPanel.setLayout(toolsPanelLayout);
         toolsPanelLayout.setHorizontalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(toolsPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(toolsPanelLayout.createSequentialGroup()
+                        .addComponent(topAddGraphButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeGraphButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(removeGraphComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -152,7 +195,7 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3))
                     .addComponent(jLabel5))
-                .addContainerGap(326, Short.MAX_VALUE))
+                .addContainerGap(155, Short.MAX_VALUE))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -163,10 +206,13 @@ public class GraphPlotter extends javax.swing.JFrame
                     .addGroup(toolsPanelLayout.createSequentialGroup()
                         .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(toolsPanelLayout.createSequentialGroup()
-                                .addGap(8, 8, 8)
+                                .addGap(2, 2, 2)
                                 .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton1))
+                                .addGap(10, 10, 10)
+                                .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(topAddGraphButton)
+                                    .addComponent(removeGraphButton)
+                                    .addComponent(removeGraphComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(toolsPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -380,19 +426,8 @@ public class GraphPlotter extends javax.swing.JFrame
 
         contentScrollPane.setBorder(null);
 
-        ContentPanel.setLayout(new java.awt.GridBagLayout());
-
-        graphAreaPanel.setLayout(new java.awt.GridBagLayout());
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.weighty = 0.1;
-        ContentPanel.add(graphAreaPanel, gridBagConstraints);
-
-        contentScrollPane.setViewportView(ContentPanel);
+        contentPanel.setLayout(new java.awt.GridBagLayout());
+        contentScrollPane.setViewportView(contentPanel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -461,28 +496,55 @@ public class GraphPlotter extends javax.swing.JFrame
         
     }//GEN-LAST:event_newVariableButtonActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void topAddGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_topAddGraphButtonActionPerformed
         // TODO add your handling code here:
         addGraph();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_topAddGraphButtonActionPerformed
 
     private void bottomAddGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bottomAddGraphButtonActionPerformed
         // TODO add your handling code here:
         addGraph();
     }//GEN-LAST:event_bottomAddGraphButtonActionPerformed
 
+    private void removeGraphComboBoxPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_removeGraphComboBoxPopupMenuWillBecomeVisible
+        // TODO add your handling code here:
+        refreshRemoveGraphComboBox();
+    }//GEN-LAST:event_removeGraphComboBoxPopupMenuWillBecomeVisible
+
+    private void removeGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeGraphButtonActionPerformed
+        // TODO add your handling code here:
+        // Delete item
+        for (int i = 0; i < graphs.size(); i++)
+        {
+            if (graphs.get(i).getGraphName().equals((String)removeGraphComboBox.getSelectedItem()))
+            {
+                graphs.remove(i);
+                break;
+            }
+        }
+        
+        // Refresh list and GUI
+        contentPanel.removeAll();
+        for (int i = 0; i < graphs.size(); i++)
+        {
+            graphs.get(i).updatePosition(i);
+            contentPanel.add(graphs.get(i), graphs.get(i).constraints);
+        }
+        contentPanel.revalidate();
+        
+        refreshRemoveGraphComboBox();
+    }//GEN-LAST:event_removeGraphButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel ContentPanel;
     private javax.swing.JButton bottomAddGraphButton;
+    private javax.swing.JPanel contentPanel;
     private javax.swing.JScrollPane contentScrollPane;
     private javax.swing.JButton deleteVariableButton;
     private javax.swing.JComboBox<String> deleteVariableComboBox;
     private javax.swing.JPanel editTablePanel;
     private javax.swing.JPanel exportPanel;
     private javax.swing.JPanel footerPanel;
-    private javax.swing.JPanel graphAreaPanel;
     private javax.swing.JPanel importPanel;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox<String> jComboBox1;
@@ -501,10 +563,13 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JPanel preferencesPanel;
     private javax.swing.JTable processingTable;
     private javax.swing.JPanel processingTablePanel;
+    private javax.swing.JButton removeGraphButton;
+    private javax.swing.JComboBox<String> removeGraphComboBox;
     private javax.swing.JPanel tableHeaderPanel;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JScrollPane tableScrollPane;
     private javax.swing.JButton toggleTableButton;
     private javax.swing.JPanel toolsPanel;
+    private javax.swing.JButton topAddGraphButton;
     // End of variables declaration//GEN-END:variables
 }
