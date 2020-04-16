@@ -8,7 +8,7 @@
       <Connection code="new ImageIcon(getClass().getResource(&quot;/line_graph.png&quot;)).getImage()" type="code"/>
     </Property>
     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-      <Dimension value="[795, 500]"/>
+      <Dimension value="[800, 500]"/>
     </Property>
     <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
       <Dimension value="[750, 680]"/>

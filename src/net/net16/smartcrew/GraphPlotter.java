@@ -117,7 +117,7 @@ public class GraphPlotter extends javax.swing.JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Serial Graph Plotter");
         setIconImage(new ImageIcon(getClass().getResource("/line_graph.png")).getImage());
-        setMinimumSize(new java.awt.Dimension(795, 500));
+        setMinimumSize(new java.awt.Dimension(800, 500));
         setPreferredSize(new java.awt.Dimension(750, 680));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -531,6 +531,7 @@ public class GraphPlotter extends javax.swing.JFrame
             contentPanel.add(graphs.get(i), graphs.get(i).constraints);
         }
         contentPanel.revalidate();
+        contentPanel.repaint();
         
         refreshRemoveGraphComboBox();
     }//GEN-LAST:event_removeGraphButtonActionPerformed
