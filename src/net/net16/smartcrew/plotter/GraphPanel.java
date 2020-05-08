@@ -25,6 +25,10 @@ import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.table.DefaultTableModel;
+import net.net16.smartcrew.GraphPlotter;
 
 /**
  *
@@ -51,6 +55,7 @@ public class GraphPanel extends JPanel
     JTextField yUnitTextField;
     JCheckBox yUseTimeAxisCheckBox;
     public GridBagConstraints constraints;
+    DefaultTableModel processingModel;
     
     public GraphPanel(int gridy)
     {
@@ -161,6 +166,21 @@ public class GraphPanel extends JPanel
         xUseTimeAxisCheckBox = new JCheckBox();
         xUseTimeAxisCheckBox.setText("Use time axis");
         
+        xAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                GraphPanel.this.xAxisComboBoxPopupMenuEventPerformed(e);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+            }
+        });
+        
         xUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
             xUseTimeAxisCheckBoxActionPerformed(e);
         });
@@ -229,6 +249,21 @@ public class GraphPanel extends JPanel
         yUseTimeAxisCheckBox = new JCheckBox();
         yUseTimeAxisCheckBox.setText("Use time axis");
         
+        yAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                GraphPanel.this.yAxisComboBoxPopupMenuEventPerformed(e);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+            }
+        });
+        
         yUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
             yUseTimeAxisCheckBoxActionPerformed(e);
         });
@@ -287,6 +322,24 @@ public class GraphPanel extends JPanel
         g.update();
     }
     
+    void updateXAxisComboBox()
+    {
+        xAxisComboBox.removeAllItems();
+        for (int i = 0; i < processingModel.getRowCount(); i++)
+        {
+            xAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
+        }
+    }
+    
+    void updateYAxisComboBox()
+    {
+        yAxisComboBox.removeAllItems();
+        for (int i = 0; i < processingModel.getRowCount(); i++)
+        {
+            yAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
+        }
+    }
+    
     private void hideShowButtonActionPerformed(ActionEvent evt)
     {
         if(hideShowButton.getText().equals("Show"))
@@ -303,15 +356,27 @@ public class GraphPanel extends JPanel
         }
     }
     
+    private void xAxisComboBoxPopupMenuEventPerformed(PopupMenuEvent e)
+    {
+        updateXAxisComboBox();
+    }
+    
+    private void yAxisComboBoxPopupMenuEventPerformed(PopupMenuEvent e)
+    {
+        updateYAxisComboBox();
+    }
+    
     private void xUseTimeAxisCheckBoxActionPerformed(ActionEvent evt)
     {
         if (xUseTimeAxisCheckBox.isSelected())
         {
             xUnitTextField.setEnabled(false);
+            xAxisComboBox.setEnabled(false);
         }
         else
         {
             xUnitTextField.setEnabled(true);
+            xAxisComboBox.setEnabled(true);
         }
     }
     
@@ -320,10 +385,12 @@ public class GraphPanel extends JPanel
         if (yUseTimeAxisCheckBox.isSelected())
         {
             yUnitTextField.setEnabled(false);
+            yAxisComboBox.setEnabled(false);
         }
         else
         {
             yUnitTextField.setEnabled(true);
+            yAxisComboBox.setEnabled(true);
         }
     }
     
@@ -354,6 +421,17 @@ public class GraphPanel extends JPanel
     {
         setGraphName("Graph #" + Integer.toString(i + 1));
         constraints.gridy = i;
+    }
+    
+    /**
+     * 
+     * @param m 
+     */
+    public void attachProcessingTableModel(DefaultTableModel m)
+    {
+        this.processingModel = m;
+        updateXAxisComboBox();
+        updateYAxisComboBox();
     }
 }
 

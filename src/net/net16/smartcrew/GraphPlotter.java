@@ -9,6 +9,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
+import javax.swing.table.DefaultTableModel;
 import net.net16.smartcrew.plotter.GraphPanel;
 
 /**
@@ -17,7 +18,10 @@ import net.net16.smartcrew.plotter.GraphPanel;
  */
 public class GraphPlotter extends javax.swing.JFrame
 {
+    public final static int VARIABLE_NAME_COL = 0;
+    
     ArrayList<GraphPanel> graphs;
+    DefaultTableModel processingModel;
 
     /**
      * Creates new form SerialPlotter
@@ -34,6 +38,8 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
         
+        processingModel = (DefaultTableModel) processingTable.getModel();
+        
         graphs = new ArrayList<>();
         addGraph();
     }
@@ -44,6 +50,7 @@ public class GraphPlotter extends javax.swing.JFrame
     private void addGraph()
     {
         GraphPanel gp = new GraphPanel(graphs.size());
+        gp.attachProcessingTableModel(processingModel);
         graphs.add(gp);
         contentPanel.add(gp, gp.constraints);
         contentPanel.revalidate();
@@ -65,6 +72,18 @@ public class GraphPlotter extends javax.swing.JFrame
         if (graphs.isEmpty())
         {
             removeGraphComboBox.addItem("Select");
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void updateDeleteVariableComboBox()
+    {
+        deleteVariableComboBox.removeAllItems();
+        for (int i = 0; i < processingModel.getRowCount(); i++)
+        {
+            deleteVariableComboBox.addItem((String) processingModel.getValueAt(i, VARIABLE_NAME_COL));
         }
     }
 
@@ -321,7 +340,7 @@ public class GraphPlotter extends javax.swing.JFrame
             new Object [][] {
                 {"var1", null,  new Float(0.0),  new Float(0.0)},
                 {"var2", null,  new Float(0.0),  new Float(0.0)},
-                {null, null, null, null}
+                {"var3", null,  new Float(0.0),  new Float(0.0)}
             },
             new String [] {
                 "Variable name", "Processing rule", "Raw value (example)", "Formatted value"
@@ -371,8 +390,22 @@ public class GraphPlotter extends javax.swing.JFrame
         });
 
         deleteVariableButton.setText("DELETE");
+        deleteVariableButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteVariableButtonActionPerformed(evt);
+            }
+        });
 
         deleteVariableComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "var1", "var2" }));
+        deleteVariableComboBox.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
+            }
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
+            }
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
+                deleteVariableComboBoxPopupMenuWillBecomeVisible(evt);
+            }
+        });
 
         javax.swing.GroupLayout editTablePanelLayout = new javax.swing.GroupLayout(editTablePanel);
         editTablePanel.setLayout(editTablePanelLayout);
@@ -492,8 +525,40 @@ public class GraphPlotter extends javax.swing.JFrame
     }//GEN-LAST:event_toggleTableButtonActionPerformed
 
     private void newVariableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newVariableButtonActionPerformed
-        // TODO add your handling code here:
+        // Get index of var
+        // 1. Get variable names
+        String[] names = new String[processingModel.getRowCount()];
+        for (int i = 0; i < names.length; i++)
+        {
+            names[i] = (String) processingModel.getValueAt(i, VARIABLE_NAME_COL);
+        }
         
+        // 2. Sort variable names
+        for (int x = 0; x < names.length; x++)
+        {
+            for (int i = 0; i < names.length-1; i++)
+            {
+                if (names[i].compareToIgnoreCase(names[i+1]) > 0)
+                {
+                    String s = names[i];
+                    names[i] = names[i+1];
+                    names[i+1] = s;
+                }
+            }
+        }
+        
+        // 3. Count variables in format "varX"
+        int count = 0;
+        for (int i = 0; i < names.length; i++)
+        {
+            if(names[i].equalsIgnoreCase("var"+(count+1)))
+            {
+                count++;
+            }
+        }
+        Object[] o = new Object[processingModel.getRowCount()];
+        o[VARIABLE_NAME_COL] = ("var"+(++count));
+        processingModel.addRow(o);
     }//GEN-LAST:event_newVariableButtonActionPerformed
 
     private void topAddGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_topAddGraphButtonActionPerformed
@@ -535,6 +600,27 @@ public class GraphPlotter extends javax.swing.JFrame
         
         refreshRemoveGraphComboBox();
     }//GEN-LAST:event_removeGraphButtonActionPerformed
+
+    private void deleteVariableComboBoxPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_deleteVariableComboBoxPopupMenuWillBecomeVisible
+        // TODO add your handling code here:
+        updateDeleteVariableComboBox();
+    }//GEN-LAST:event_deleteVariableComboBoxPopupMenuWillBecomeVisible
+
+    private void deleteVariableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteVariableButtonActionPerformed
+        // TODO add your handling code here:
+        if (processingTable.getRowCount() <= 1)
+        {
+            return;
+        }
+        for (int i = 0; i < processingTable.getRowCount(); i++)
+        {
+            if(((String) processingModel.getValueAt(i, VARIABLE_NAME_COL)).equalsIgnoreCase((String) deleteVariableComboBox.getSelectedItem()))
+            {
+                processingModel.removeRow(i);
+            }
+        }
+        updateDeleteVariableComboBox();
+    }//GEN-LAST:event_deleteVariableButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bottomAddGraphButton;
