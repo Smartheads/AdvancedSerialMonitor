@@ -408,12 +408,12 @@
                           <Data value="var3"/>
                         </Column>
                         <Column editable="true" title="Processing rule" type="java.lang.String"/>
-                        <Column editable="false" title="Raw value (example)" type="java.lang.Float">
+                        <Column editable="true" title="Raw value (example)" type="java.lang.Double">
                           <Data value="0.0"/>
                           <Data value="0.0"/>
                           <Data value="0.0"/>
                         </Column>
-                        <Column editable="false" title="Formatted value" type="java.lang.Float">
+                        <Column editable="false" title="Formatted value" type="java.lang.Double">
                           <Data value="0.0"/>
                           <Data value="0.0"/>
                           <Data value="0.0"/>
@@ -451,6 +451,9 @@
                       <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
                     </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="processingTablePropertyChange"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>

@@ -322,22 +322,35 @@ public class GraphPanel extends JPanel
         g.update();
     }
     
+    /**
+     * 
+     */
+    public void updateVariableComboBoxes()
+    {
+       updateXAxisComboBox();
+       updateYAxisComboBox();
+    }
+    
     void updateXAxisComboBox()
     {
+        Object selected = xAxisComboBox.getSelectedItem();
         xAxisComboBox.removeAllItems();
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
             xAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
         }
+        xAxisComboBox.setSelectedItem(selected);
     }
     
     void updateYAxisComboBox()
     {
+        Object selected = yAxisComboBox.getSelectedItem();
         yAxisComboBox.removeAllItems();
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
             yAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
         }
+        yAxisComboBox.setSelectedItem(selected);
     }
     
     private void hideShowButtonActionPerformed(ActionEvent evt)

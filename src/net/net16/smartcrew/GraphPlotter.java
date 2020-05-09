@@ -19,6 +19,9 @@ import net.net16.smartcrew.plotter.GraphPanel;
 public class GraphPlotter extends javax.swing.JFrame
 {
     public final static int VARIABLE_NAME_COL = 0;
+    public final static int PROCESSING_RULE_COL = 1;
+    public final static int EXAMPLE_VALUE_COL = 2;
+    public final static int FORMATTED_VALUE_COL = 3;
     
     ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
@@ -85,6 +88,56 @@ public class GraphPlotter extends javax.swing.JFrame
         {
             deleteVariableComboBox.addItem((String) processingModel.getValueAt(i, VARIABLE_NAME_COL));
         }
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    private String getNewProcessingVariableName()
+    {
+        // Get index of var
+        // 1. Get variable names
+        String[] names = new String[processingModel.getRowCount()];
+        for (int i = 0; i < names.length; i++)
+        {
+            names[i] = (String) processingModel.getValueAt(i, VARIABLE_NAME_COL);
+        }
+        
+        // 2. Sort variable names
+        for (int x = 0; x < names.length; x++)
+        {
+            for (int i = 0; i < names.length-1; i++)
+            {
+                if (names[i].compareToIgnoreCase(names[i+1]) > 0)
+                {
+                    String s = names[i];
+                    names[i] = names[i+1];
+                    names[i+1] = s;
+                }
+            }
+        }
+        
+        // 3. Count variables in format "varX"
+        int count = 0;
+        for (String name : names)
+        {
+            if (name.equalsIgnoreCase("var"+(count+1))) {
+                count++;
+            }
+        }
+        
+        return ("var"+(++count));
+    }
+    
+    /**
+     * 
+     * @param format
+     * @return 
+     */
+    double formatValue(double value, String format)
+    {
+        return 0;
     }
 
     /**
@@ -338,19 +391,19 @@ public class GraphPlotter extends javax.swing.JFrame
 
         processingTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"var1", null,  new Float(0.0),  new Float(0.0)},
-                {"var2", null,  new Float(0.0),  new Float(0.0)},
-                {"var3", null,  new Float(0.0),  new Float(0.0)}
+                {"var1", null,  new Double(0.0),  new Double(0.0)},
+                {"var2", null,  new Double(0.0),  new Double(0.0)},
+                {"var3", null,  new Double(0.0),  new Double(0.0)}
             },
             new String [] {
                 "Variable name", "Processing rule", "Raw value (example)", "Formatted value"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Float.class, java.lang.Float.class
+                java.lang.String.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean [] {
-                true, true, false, false
+                true, true, true, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -364,6 +417,11 @@ public class GraphPlotter extends javax.swing.JFrame
         processingTable.setShowGrid(false);
         processingTable.setShowHorizontalLines(true);
         processingTable.setShowVerticalLines(true);
+        processingTable.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                processingTablePropertyChange(evt);
+            }
+        });
         tableScrollPane.setViewportView(processingTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -525,39 +583,8 @@ public class GraphPlotter extends javax.swing.JFrame
     }//GEN-LAST:event_toggleTableButtonActionPerformed
 
     private void newVariableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newVariableButtonActionPerformed
-        // Get index of var
-        // 1. Get variable names
-        String[] names = new String[processingModel.getRowCount()];
-        for (int i = 0; i < names.length; i++)
-        {
-            names[i] = (String) processingModel.getValueAt(i, VARIABLE_NAME_COL);
-        }
-        
-        // 2. Sort variable names
-        for (int x = 0; x < names.length; x++)
-        {
-            for (int i = 0; i < names.length-1; i++)
-            {
-                if (names[i].compareToIgnoreCase(names[i+1]) > 0)
-                {
-                    String s = names[i];
-                    names[i] = names[i+1];
-                    names[i+1] = s;
-                }
-            }
-        }
-        
-        // 3. Count variables in format "varX"
-        int count = 0;
-        for (int i = 0; i < names.length; i++)
-        {
-            if(names[i].equalsIgnoreCase("var"+(count+1)))
-            {
-                count++;
-            }
-        }
         Object[] o = new Object[processingModel.getRowCount()];
-        o[VARIABLE_NAME_COL] = ("var"+(++count));
+        o[VARIABLE_NAME_COL] = getNewProcessingVariableName();
         processingModel.addRow(o);
     }//GEN-LAST:event_newVariableButtonActionPerformed
 
@@ -621,6 +648,62 @@ public class GraphPlotter extends javax.swing.JFrame
         }
         updateDeleteVariableComboBox();
     }//GEN-LAST:event_deleteVariableButtonActionPerformed
+
+    private void processingTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_processingTablePropertyChange
+        // TODO add your handling code here:
+        if (processingModel == null)
+        {
+            return;
+        }
+        
+        for (int i = 0; i < processingModel.getRowCount(); i++)
+        {
+            // Dont allow for variable name to be left empty
+            if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(""))
+            {
+                processingModel.setValueAt(getNewProcessingVariableName(), i, VARIABLE_NAME_COL);
+            }
+            
+            // Compute formatted value when example value or processing rule changed
+            if (processingModel.getValueAt(i, EXAMPLE_VALUE_COL) != null)
+            {
+                try
+                {
+                    processingModel.setValueAt(
+                        formatValue(
+                                (double) processingModel.getValueAt(i, EXAMPLE_VALUE_COL),
+                                (String) processingModel.getValueAt(i, PROCESSING_RULE_COL)
+                        ),
+                        i,
+                        FORMATTED_VALUE_COL
+                    );
+                }
+                catch (ClassCastException e)
+                {
+                    processingModel.setValueAt(
+                        formatValue(
+                                (int) processingModel.getValueAt(i, EXAMPLE_VALUE_COL),
+                                (String) processingModel.getValueAt(i, PROCESSING_RULE_COL)
+                        ),
+                        i,
+                        FORMATTED_VALUE_COL
+                    );
+                }
+                
+            }
+            else
+            {
+                processingModel.setValueAt(0, i, EXAMPLE_VALUE_COL);
+            }
+        }
+        
+        /*
+        // Update varible combo boxes in graphs
+        for(GraphPanel gp : graphs)
+        {
+            gp.updateVariableComboBoxes();
+        }*/
+    }//GEN-LAST:event_processingTablePropertyChange
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bottomAddGraphButton;
