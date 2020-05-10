@@ -603,13 +603,14 @@
                     <Component class="javax.swing.JComboBox" name="decodeCharsetSelector">
                       <Properties>
                         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                          <StringArray count="6">
+                          <StringArray count="7">
                             <StringItem index="0" value="US-ASCII"/>
                             <StringItem index="1" value="ISO-8859-1 "/>
                             <StringItem index="2" value="UTF-8"/>
                             <StringItem index="3" value="UTF-16BE"/>
                             <StringItem index="4" value="UTF-16LE"/>
                             <StringItem index="5" value="UTF-16"/>
+                            <StringItem index="6" value="Don&apos;t decode"/>
                           </StringArray>
                         </Property>
                         <Property name="toolTipText" type="java.lang.String" value="Select the charset used to decode recived data."/>
@@ -1343,7 +1344,15 @@
                       <Component id="wordWrap" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="timestampCheckBox" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="609" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="numberLengthLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="numberLengthComboBox" min="-2" pref="65" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="numberSignednessLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="numberSignednessComboBox" min="-2" pref="76" max="-2" attributes="0"/>
+                      <EmptySpace pref="323" max="32767" attributes="0"/>
                       <Component id="clearConsole" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -1361,6 +1370,10 @@
                           <Component id="autoscroll" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="wordWrap" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="timestampCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="numberLengthComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="numberLengthLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="numberSignednessLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="numberSignednessComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" attributes="0">
@@ -1458,6 +1471,42 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timestampCheckBoxActionPerformed"/>
               </Events>
+            </Component>
+            <Component class="javax.swing.JComboBox" name="numberLengthComboBox">
+              <Properties>
+                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                  <StringArray count="2">
+                    <StringItem index="0" value="1 byte"/>
+                    <StringItem index="1" value="2 byte"/>
+                  </StringArray>
+                </Property>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JLabel" name="numberLengthLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Number size"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="numberSignednessLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Signedness"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JComboBox" name="numberSignednessComboBox">
+              <Properties>
+                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                  <StringArray count="2">
+                    <StringItem index="0" value="signed"/>
+                    <StringItem index="1" value="unsigned"/>
+                  </StringArray>
+                </Property>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+              </AuxValues>
             </Component>
           </SubComponents>
         </Container>

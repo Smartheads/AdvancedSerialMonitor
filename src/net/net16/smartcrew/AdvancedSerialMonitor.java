@@ -25,7 +25,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import javax.swing.text.DefaultCaret;
-import net.net16.smartcrew.plotter.GraphPanel;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -48,6 +47,16 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private final ImageIcon offIcon;
     
     private GraphPlotter gp;
+    
+    private volatile byte[] incommingBuffer;
+    
+    {
+        startWithTimestamp = false;
+        port = null;
+        onIcon = new ImageIcon(getClass().getResource("/green_dot.png"));
+        offIcon = new ImageIcon(getClass().getResource("/red_dot.png"));
+        incommingBuffer = new byte[0];
+    }
 
     /**
      * Creates new form AdvancedSerialMonitor
@@ -56,15 +65,15 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         initComponents();
         
         // Initialize variables
-        startWithTimestamp = false;
-        port = null;
         caret = (DefaultCaret)console.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        onIcon = new ImageIcon(getClass().getResource("/green_dot.png"));
-        offIcon = new ImageIcon(getClass().getResource("/red_dot.png"));
         onOffLabel.setIcon(offIcon);
         encodeCharset = (String) charsetSelector.getSelectedItem();
         decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
+        numberLengthLabel.setVisible(false);
+        numberLengthComboBox.setVisible(false);
+        numberSignednessLabel.setVisible(false);
+        numberSignednessComboBox.setVisible(false);
         
         Action clearConsoleAction = new AbstractAction()
         {
@@ -109,15 +118,103 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     @Override
     public void serialEvent(SerialPortEvent event)
     {  
-        String data = "";
+        String data;
         
-        try
+        // If decodeCharset equals null, don't decode numbers
+        if (decodeCharset == null)
         {
-            data = new String(event.getReceivedData(), decodeCharset);
+            byte[] buff = event.getReceivedData();
+            StringBuilder sb = new StringBuilder();
+            
+            switch(numberLengthComboBox.getSelectedIndex())
+            {
+                case 0: // 1 byte
+                    for (byte b : buff)
+                    {
+                        if (numberSignednessComboBox.getSelectedIndex() == 0)
+                        {
+                            // Signed
+                            sb.append((int)b);
+                        }
+                        else
+                        {
+                            // Unsigned
+                            if ((int) b >= 0)
+                            {
+                                sb.append((int)b);
+                            }
+                            else
+                            {
+                                int x = b;
+                                sb.append(256+x);
+                            }
+                        }
+                        sb.append(" | ");
+                    }
+                break;
+                
+                case 1: // 2 byte
+                    byte[] cbuff = new byte[buff.length + incommingBuffer.length];
+                    
+                    // Populate new buffer
+                    int e = 0;
+                    for (byte b : incommingBuffer)
+                    {
+                        cbuff[e] = b;
+                        e++;
+                    }
+                    
+                    for (byte b : buff)
+                    {
+                        cbuff[e] = b;
+                        e++;
+                    }
+                    
+                    // Check length
+                    int count;
+                    if (cbuff.length % 2 == 0)
+                    {
+                        count = cbuff.length / 2;
+                        incommingBuffer = new byte[0];
+                    }
+                    else
+                    {
+                        count = (cbuff.length-1) / 2;
+                        incommingBuffer = new byte[1];
+                        incommingBuffer[0] = cbuff[cbuff.length-1];
+                    }
+                    
+                    for (int i = 0; i < count; i += 2)
+                    {
+                        if (numberSignednessComboBox.getSelectedIndex() == 0)
+                        {
+                            // Signed
+                            short x = (short) ((cbuff[i] << 8) | (cbuff[i+1]));
+                            sb.append(x);
+                        }
+                        else
+                        {
+                            // Unsigned
+                            int x = ((cbuff[0] << 8) & 0x0000ff00) | (cbuff[1] & 0x000000ff);
+                            sb.append(x);
+                        }
+                        sb.append(" | ");
+                    }
+                break;
+            }
+            
+            data = sb.toString();
         }
-        catch (UnsupportedEncodingException ex)
+        else
         {
-            data = new String(event.getReceivedData()); // Loose bad encoding
+            try
+            {
+                data = new String(event.getReceivedData(), decodeCharset);
+            }
+            catch (UnsupportedEncodingException ex)
+            {
+                data = new String(event.getReceivedData()); // Loose bad encoding
+            }
         }
 
         if(timestampCheckBox.isSelected())
@@ -282,6 +379,10 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         autoscroll = new javax.swing.JCheckBox();
         wordWrap = new javax.swing.JCheckBox();
         timestampCheckBox = new javax.swing.JCheckBox();
+        numberLengthComboBox = new javax.swing.JComboBox<>();
+        numberLengthLabel = new javax.swing.JLabel();
+        numberSignednessLabel = new javax.swing.JLabel();
+        numberSignednessComboBox = new javax.swing.JComboBox<>();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
@@ -476,7 +577,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         jLabel9.setFont(jLabel9.getFont().deriveFont(jLabel9.getFont().getStyle() | java.awt.Font.BOLD, jLabel9.getFont().getSize()+2));
         jLabel9.setText("Decode charset");
 
-        decodeCharsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16" }));
+        decodeCharsetSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "US-ASCII", "ISO-8859-1 ", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-16", "Don't decode" }));
         decodeCharsetSelector.setToolTipText("Select the charset used to decode recived data.");
         decodeCharsetSelector.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -920,6 +1021,14 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
             }
         });
 
+        numberLengthComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1 byte", "2 byte" }));
+
+        numberLengthLabel.setText("Number size");
+
+        numberSignednessLabel.setText("Signedness");
+
+        numberSignednessComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "signed", "unsigned" }));
+
         javax.swing.GroupLayout optionsPanelLayout = new javax.swing.GroupLayout(optionsPanel);
         optionsPanel.setLayout(optionsPanelLayout);
         optionsPanelLayout.setHorizontalGroup(
@@ -935,7 +1044,15 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                 .addComponent(wordWrap)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(timestampCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 609, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(numberLengthLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(numberLengthComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(numberSignednessLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(numberSignednessComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 323, Short.MAX_VALUE)
                 .addComponent(clearConsole))
         );
         optionsPanelLayout.setVerticalGroup(
@@ -949,7 +1066,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                     .addComponent(selectFontSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(autoscroll)
                     .addComponent(wordWrap)
-                    .addComponent(timestampCheckBox)))
+                    .addComponent(timestampCheckBox)
+                    .addComponent(numberLengthComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(numberLengthLabel)
+                    .addComponent(numberSignednessLabel)
+                    .addComponent(numberSignednessComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGroup(optionsPanelLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(clearConsole))
@@ -1101,7 +1222,22 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
     private void decodeCharsetSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decodeCharsetSelectorActionPerformed
         // TODO add your handling code here:
-        decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
+        if (((String) decodeCharsetSelector.getSelectedItem()).equals("Don't decode"))
+        {
+            decodeCharset = null;
+            numberLengthLabel.setVisible(true);
+            numberLengthComboBox.setVisible(true);
+            numberSignednessLabel.setVisible(true);
+            numberSignednessComboBox.setVisible(true);
+        }
+        else
+        {
+            decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
+            numberLengthLabel.setVisible(false);
+            numberLengthComboBox.setVisible(false);
+            numberSignednessLabel.setVisible(false);
+            numberSignednessComboBox.setVisible(false);
+        }
     }//GEN-LAST:event_decodeCharsetSelectorActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -1378,7 +1514,6 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         port.setBaudRate(Integer.parseInt((String) baudRateSelector.getSelectedItem()));
         port.openPort();
         port.addDataListener(AdvancedSerialMonitor.this);
-        decodeCharset = (String) decodeCharsetSelector.getSelectedItem();
         log.append("Port "+(String)portComboBox.getSelectedItem() + " opened sucessfully.\n");
         startStop.setText("Stop");
         onOffLabel.setIcon(onIcon);
@@ -1595,6 +1730,10 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private javax.swing.JLabel jlStreamError;
     private javax.swing.JTextArea log;
     private javax.swing.JPanel mainPanel;
+    private javax.swing.JComboBox<String> numberLengthComboBox;
+    private javax.swing.JLabel numberLengthLabel;
+    private javax.swing.JComboBox<String> numberSignednessComboBox;
+    private javax.swing.JLabel numberSignednessLabel;
     private javax.swing.JButton okButton;
     private javax.swing.JLabel onOffLabel;
     private javax.swing.JPanel optionsPanel;

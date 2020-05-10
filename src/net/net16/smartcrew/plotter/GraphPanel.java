@@ -333,24 +333,45 @@ public class GraphPanel extends JPanel
     
     void updateXAxisComboBox()
     {
-        Object selected = xAxisComboBox.getSelectedItem();
+        String selected = (String) xAxisComboBox.getSelectedItem();
+        int selectedIndex = -1;
+        
         xAxisComboBox.removeAllItems();
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
             xAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
+            if (((String)xAxisComboBox.getItemAt(i)).equals(selected))
+            {
+                selectedIndex = i;
+            }
         }
-        xAxisComboBox.setSelectedItem(selected);
+        
+        if (selectedIndex >= 0)
+        {
+            xAxisComboBox.setSelectedIndex(selectedIndex);
+        }
     }
     
     void updateYAxisComboBox()
     {
-        Object selected = yAxisComboBox.getSelectedItem();
+        String selected = (String) yAxisComboBox.getSelectedItem();
+        int selectedIndex = -1;
+        
         yAxisComboBox.removeAllItems();
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
             yAxisComboBox.addItem((String) processingModel.getValueAt(i, GraphPlotter.VARIABLE_NAME_COL));
+            if (((String)yAxisComboBox.getItemAt(i)).equals(selected))
+            {
+                selectedIndex = i;
+            }
         }
-        yAxisComboBox.setSelectedItem(selected);
+        
+        
+        if (selectedIndex >= 0)
+        {
+            yAxisComboBox.setSelectedIndex(selectedIndex);
+        }
     }
     
     private void hideShowButtonActionPerformed(ActionEvent evt)

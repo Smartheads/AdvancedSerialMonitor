@@ -639,6 +639,7 @@ public class GraphPlotter extends javax.swing.JFrame
         {
             return;
         }
+        
         for (int i = 0; i < processingTable.getRowCount(); i++)
         {
             if(((String) processingModel.getValueAt(i, VARIABLE_NAME_COL)).equalsIgnoreCase((String) deleteVariableComboBox.getSelectedItem()))
@@ -647,6 +648,11 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         }
         updateDeleteVariableComboBox();
+        
+        for (GraphPanel gp : graphs)
+        {
+            gp.updateVariableComboBoxes();
+        }
     }//GEN-LAST:event_deleteVariableButtonActionPerformed
 
     private void processingTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_processingTablePropertyChange
@@ -697,12 +703,13 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         }
         
-        /*
         // Update varible combo boxes in graphs
         for(GraphPanel gp : graphs)
         {
             gp.updateVariableComboBoxes();
-        }*/
+        }
+        
+        updateDeleteVariableComboBox();
     }//GEN-LAST:event_processingTablePropertyChange
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
