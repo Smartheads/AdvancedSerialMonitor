@@ -166,6 +166,8 @@ public class GraphPanel extends JPanel
         xUseTimeAxisCheckBox = new JCheckBox();
         xUseTimeAxisCheckBox.setText("Use time axis");
         
+        xAxisComboBox.setPreferredSize(new Dimension(xAxisComboBox.getWidth(), 20));
+        
         xAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
@@ -248,6 +250,8 @@ public class GraphPanel extends JPanel
         yUnitTextField = new JTextField();
         yUseTimeAxisCheckBox = new JCheckBox();
         yUseTimeAxisCheckBox.setText("Use time axis");
+        
+        yAxisComboBox.setPreferredSize(new Dimension(yAxisComboBox.getWidth(), 20));
         
         yAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
             @Override

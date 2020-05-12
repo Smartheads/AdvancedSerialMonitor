@@ -48,7 +48,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     
     private GraphPlotter gp;
     
-    private volatile byte[] incommingBuffer;
+    private byte[] incommingBuffer;
     
     {
         startWithTimestamp = false;
@@ -1557,95 +1557,103 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     
     private void sendPrompt ()
     {
-        if (port.isOpen())
+        if (port != null)
         {
-            if (prompt.getText().length() > 0 || endlComboBox.getSelectedIndex() != 0)
+            if (port.isOpen())
             {
-                String endl = "";
-
-                switch (endlComboBox.getSelectedIndex())
+                if (prompt.getText().length() > 0 || endlComboBox.getSelectedIndex() != 0)
                 {
-                    case 0: // Nothing
-                    break;
+                    String endl = "";
 
-                    case 1: // \n
-                        endl = "\n";
-                    break;
-
-                    case 2: // \r
-                        endl = "\r";
-                    break;
-
-                    case 3:
-                        endl = "\0";
-                    break;
-                }
-
-                if (encodeCharset.equals("Don't encode"))
-                {   
-                    try
+                    switch (endlComboBox.getSelectedIndex())
                     {
-                        String text = prompt.getText().trim();
-                        // Calculate length of buffer
-                        int l = 1;
-                        for (char c : text.toCharArray())
-                        {
-                            if (c == ',')
-                            {
-                                l++;
-                            }
-                        }
+                        case 0: // Nothing
+                        break;
 
-                        byte[] buff = new byte[l];
-                        l = 0;
-                        StringBuilder sb = new StringBuilder("");
+                        case 1: // \n
+                            endl = "\n";
+                        break;
 
-                        // Extract numbers
-                        for (int i = 0; i < text.length(); i++)
-                        {
-                            if (text.charAt(i) == ',' || i == text.length() - 1)
-                            {
-                                buff[l++] = (byte) Integer.parseInt(sb.toString());
-                            }
-                            else
-                            {
-                                sb.append(text.charAt(i));
-                            }
-                        }
+                        case 2: // \r
+                            endl = "\r";
+                        break;
 
-                        // Send numbers
-                        port.writeBytes(buff, buff.length);
-                        
-                        prompt.setText("");
-                        jlSendError.setText("");
+                        case 3:
+                            endl = "\0";
+                        break;
                     }
-                    catch(NumberFormatException e)
+
+                    if (encodeCharset.equals("Don't encode"))
+                    {   
+                        try
+                        {
+                            String text = prompt.getText().trim();
+                            // Calculate length of buffer
+                            int l = 1;
+                            for (char c : text.toCharArray())
+                            {
+                                if (c == ',')
+                                {
+                                    l++;
+                                }
+                            }
+
+                            byte[] buff = new byte[l];
+                            l = 0;
+                            StringBuilder sb = new StringBuilder("");
+
+                            // Extract numbers
+                            for (int i = 0; i < text.length(); i++)
+                            {
+                                if (text.charAt(i) == ',' || i == text.length() - 1)
+                                {
+                                    buff[l++] = (byte) Integer.parseInt(sb.toString());
+                                }
+                                else
+                                {
+                                    sb.append(text.charAt(i));
+                                }
+                            }
+
+                            // Send numbers
+                            port.writeBytes(buff, buff.length);
+
+                            prompt.setText("");
+                            jlSendError.setText("");
+                        }
+                        catch(NumberFormatException e)
+                        {
+                            jlSendError.setForeground(Color.red);
+                            jlSendError.setText("No charset selected. Can't encode character.");
+                        }
+                    }
+                    else
                     {
-                        jlSendError.setForeground(Color.red);
-                        jlSendError.setText("No charset selected. Can't encode character.");
+                        try
+                        {
+                            byte[] buff = (prompt.getText()+endl).getBytes(encodeCharset);
+                            port.writeBytes(buff, buff.length);
+
+                            prompt.setText("");
+                            jlSendError.setText("");
+                        }
+                        catch (UnsupportedEncodingException e)
+                        {
+                            jlSendError.setForeground(Color.red);
+                            jlSendError.setText("Can't send data. Please select another charset.\n");
+                        }
                     }
                 }
                 else
                 {
-                    try
-                    {
-                        byte[] buff = (prompt.getText()+endl).getBytes(encodeCharset);
-                        port.writeBytes(buff, buff.length);
-
-                        prompt.setText("");
-                        jlSendError.setText("");
-                    }
-                    catch (UnsupportedEncodingException e)
-                    {
-                        jlSendError.setForeground(Color.red);
-                        jlSendError.setText("Can't send data. Please select another charset.\n");
-                    }
+                    jlSendError.setForeground(Color.red);
+                    jlSendError.setText("You can't send nothing. Please enter something.");
                 }
             }
             else
             {
                 jlSendError.setForeground(Color.red);
-                jlSendError.setText("You can't send nothing. Please enter something.");
+                jlSendError.setText("Can't send data. Port not open.");
             }
         }
         else

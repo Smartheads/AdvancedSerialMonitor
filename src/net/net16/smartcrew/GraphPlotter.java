@@ -9,6 +9,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import net.net16.smartcrew.plotter.GraphPanel;
 
@@ -19,9 +20,11 @@ import net.net16.smartcrew.plotter.GraphPanel;
 public class GraphPlotter extends javax.swing.JFrame
 {
     public final static int VARIABLE_NAME_COL = 0;
-    public final static int PROCESSING_RULE_COL = 1;
-    public final static int EXAMPLE_VALUE_COL = 2;
-    public final static int FORMATTED_VALUE_COL = 3;
+    public final static int VARIABLE_POSITION_COL = 1;
+    public final static int VARIABLE_SIZE_COL = 2;
+    public final static int PROCESSING_RULE_COL = 3;
+    public final static int EXAMPLE_VALUE_COL = 4;
+    public final static int FORMATTED_VALUE_COL = 5;
     
     ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
@@ -42,6 +45,24 @@ public class GraphPlotter extends javax.swing.JFrame
         });
         
         processingModel = (DefaultTableModel) processingTable.getModel();
+        
+        DefaultTableCellRenderer r1 = new DefaultTableCellRenderer();
+        r1.setToolTipText("Variable position in data packet recieved over serial counting from 0.");
+        processingTable.getColumnModel().getColumn(VARIABLE_POSITION_COL).setCellRenderer(r1);
+        
+        DefaultTableCellRenderer r2 = new DefaultTableCellRenderer();
+        r2.setToolTipText("Size of number arriving in specified position of data packet (in bytes).");
+        processingTable.getColumnModel().getColumn(VARIABLE_SIZE_COL).setCellRenderer(r2);
+        
+        DefaultTableCellRenderer r3 = new DefaultTableCellRenderer();
+        r3.setToolTipText("Format code for processing incomming numbers before use.");
+        processingTable.getColumnModel().getColumn(PROCESSING_RULE_COL).setCellRenderer(r3);
+        
+        DefaultTableCellRenderer r4 = new DefaultTableCellRenderer();
+        r4.setToolTipText("Example input value to test processing rule. Transformed value visible in \"Formatted value\" column.");
+        processingTable.getColumnModel().getColumn(EXAMPLE_VALUE_COL).setCellRenderer(r4);
+        
+        customValueDelimiterTextField.setVisible(false);
         
         graphs = new ArrayList<>();
         addGraph();
@@ -150,6 +171,7 @@ public class GraphPlotter extends javax.swing.JFrame
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jProgressBar1 = new javax.swing.JProgressBar();
         optionsPanel = new javax.swing.JTabbedPane();
         toolsPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -164,13 +186,17 @@ public class GraphPlotter extends javax.swing.JFrame
         removeGraphButton = new javax.swing.JButton();
         removeGraphComboBox = new javax.swing.JComboBox<>();
         preferencesPanel = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        customValueDelimiterTextField = new javax.swing.JTextField();
+        valueDelimiterComboBox = new javax.swing.JComboBox<>();
         importPanel = new javax.swing.JPanel();
         exportPanel = new javax.swing.JPanel();
         processingTablePanel = new javax.swing.JPanel();
         tableHeaderPanel = new javax.swing.JPanel();
         toggleTableButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
-        jLabel3 = new javax.swing.JLabel();
+        dataProcessingTableLabel = new javax.swing.JLabel();
         tablePanel = new javax.swing.JPanel();
         tableScrollPane = new javax.swing.JScrollPane();
         processingTable = new javax.swing.JTable();
@@ -301,15 +327,54 @@ public class GraphPlotter extends javax.swing.JFrame
 
         optionsPanel.addTab("Tools", toolsPanel);
 
+        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+2));
+        jLabel3.setText("Setup incomming data packet");
+
+        jLabel7.setText("Value delimiter (char)");
+
+        customValueDelimiterTextField.setColumns(1);
+        customValueDelimiterTextField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                customValueDelimiterTextFieldKeyTyped(evt);
+            }
+        });
+
+        valueDelimiterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Comma ','", "Tab '\\t'", "Semi-colin ';'", "Newline '\\n'", "Carrige-return '\\r'", "Other" }));
+        valueDelimiterComboBox.setMinimumSize(new java.awt.Dimension(108, 20));
+        valueDelimiterComboBox.setPreferredSize(new java.awt.Dimension(108, 20));
+        valueDelimiterComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                valueDelimiterComboBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout preferencesPanelLayout = new javax.swing.GroupLayout(preferencesPanel);
         preferencesPanel.setLayout(preferencesPanelLayout);
         preferencesPanelLayout.setHorizontalGroup(
             preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 721, Short.MAX_VALUE)
+            .addGroup(preferencesPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addGroup(preferencesPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(463, Short.MAX_VALUE))
         );
         preferencesPanelLayout.setVerticalGroup(
             preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 85, Short.MAX_VALUE)
+            .addGroup(preferencesPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(37, Short.MAX_VALUE))
         );
 
         optionsPanel.addTab("Preferences", preferencesPanel);
@@ -322,7 +387,7 @@ public class GraphPlotter extends javax.swing.JFrame
         );
         importPanelLayout.setVerticalGroup(
             importPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 85, Short.MAX_VALUE)
+            .addGap(0, 92, Short.MAX_VALUE)
         );
 
         optionsPanel.addTab("Import", importPanel);
@@ -335,7 +400,7 @@ public class GraphPlotter extends javax.swing.JFrame
         );
         exportPanelLayout.setVerticalGroup(
             exportPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 85, Short.MAX_VALUE)
+            .addGap(0, 92, Short.MAX_VALUE)
         );
 
         optionsPanel.addTab("Export", exportPanel);
@@ -357,8 +422,9 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
 
-        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+2));
-        jLabel3.setText("Data processing table");
+        dataProcessingTableLabel.setFont(dataProcessingTableLabel.getFont().deriveFont(dataProcessingTableLabel.getFont().getStyle() | java.awt.Font.BOLD, dataProcessingTableLabel.getFont().getSize()+2));
+        dataProcessingTableLabel.setText("Data processing table");
+        dataProcessingTableLabel.setToolTipText("Table for setting up variables used for graph axises");
 
         javax.swing.GroupLayout tableHeaderPanelLayout = new javax.swing.GroupLayout(tableHeaderPanel);
         tableHeaderPanel.setLayout(tableHeaderPanelLayout);
@@ -368,7 +434,7 @@ public class GraphPlotter extends javax.swing.JFrame
                 .addComponent(toggleTableButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1))
-            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 726, Short.MAX_VALUE)
+            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 726, Short.MAX_VALUE)
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -377,7 +443,7 @@ public class GraphPlotter extends javax.swing.JFrame
                     .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(toggleTableButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
+                .addComponent(dataProcessingTableLabel)
                 .addContainerGap())
         );
 
@@ -391,19 +457,19 @@ public class GraphPlotter extends javax.swing.JFrame
 
         processingTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"var1", null,  new Double(0.0),  new Double(0.0)},
-                {"var2", null,  new Double(0.0),  new Double(0.0)},
-                {"var3", null,  new Double(0.0),  new Double(0.0)}
+                {"var1",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
+                {"var2",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
+                {"var3",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)}
             },
             new String [] {
-                "Variable name", "Processing rule", "Raw value (example)", "Formatted value"
+                "Variable name", "Position in packet", "Variable size (bytes)", "Preprocessing rule", "Raw value (example)", "Formatted value"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
+                java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean [] {
-                true, true, true, false
+                true, true, true, true, true, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -583,8 +649,12 @@ public class GraphPlotter extends javax.swing.JFrame
     }//GEN-LAST:event_toggleTableButtonActionPerformed
 
     private void newVariableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newVariableButtonActionPerformed
-        Object[] o = new Object[processingModel.getRowCount()];
+        Object[] o = new Object[processingModel.getColumnCount()];
         o[VARIABLE_NAME_COL] = getNewProcessingVariableName();
+        o[EXAMPLE_VALUE_COL] = 0;
+        o[FORMATTED_VALUE_COL] = 0;
+        o[VARIABLE_POSITION_COL] = 0;
+        o[VARIABLE_SIZE_COL] = 1;
         processingModel.addRow(o);
     }//GEN-LAST:event_newVariableButtonActionPerformed
 
@@ -701,6 +771,32 @@ public class GraphPlotter extends javax.swing.JFrame
             {
                 processingModel.setValueAt(0, i, EXAMPLE_VALUE_COL);
             }
+            
+            // Don't allow position in packet to be empty or negative
+            if (processingModel.getValueAt(i, VARIABLE_POSITION_COL) != null)
+            {
+                if ((int) processingModel.getValueAt(i, VARIABLE_POSITION_COL) < 0)
+                {
+                    processingModel.setValueAt(0, i, VARIABLE_POSITION_COL);
+                }
+            }
+            else
+            {
+                processingModel.setValueAt(0, i, VARIABLE_POSITION_COL);
+            }
+            
+            // Don't allow number size to be empty or smaller equal to 0
+            if (processingModel.getValueAt(i, VARIABLE_SIZE_COL) != null)
+            {
+                if ((int) processingModel.getValueAt(i, VARIABLE_SIZE_COL) <= 0)
+                {
+                    processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
+                }
+            }
+            else
+            {
+                processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
+            }
         }
         
         // Update varible combo boxes in graphs
@@ -712,10 +808,32 @@ public class GraphPlotter extends javax.swing.JFrame
         updateDeleteVariableComboBox();
     }//GEN-LAST:event_processingTablePropertyChange
 
+    private void valueDelimiterComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_valueDelimiterComboBoxActionPerformed
+        // TODO add your handling code here:
+        if (((String)valueDelimiterComboBox.getSelectedItem()).equals("Other"))
+        {
+            customValueDelimiterTextField.setVisible(true);
+        }
+        else
+        {
+            customValueDelimiterTextField.setVisible(false);
+        }
+    }//GEN-LAST:event_valueDelimiterComboBoxActionPerformed
+
+    private void customValueDelimiterTextFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_customValueDelimiterTextFieldKeyTyped
+        // TODO add your handling code here:
+        if ((customValueDelimiterTextField.getText() + evt.getKeyChar()).length() > 1)
+        {
+            evt.consume();
+        }
+    }//GEN-LAST:event_customValueDelimiterTextFieldKeyTyped
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bottomAddGraphButton;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JScrollPane contentScrollPane;
+    private javax.swing.JTextField customValueDelimiterTextField;
+    private javax.swing.JLabel dataProcessingTableLabel;
     private javax.swing.JButton deleteVariableButton;
     private javax.swing.JComboBox<String> deleteVariableComboBox;
     private javax.swing.JPanel editTablePanel;
@@ -731,6 +849,8 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
@@ -748,5 +868,6 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JButton toggleTableButton;
     private javax.swing.JPanel toolsPanel;
     private javax.swing.JButton topAddGraphButton;
+    private javax.swing.JComboBox<String> valueDelimiterComboBox;
     // End of variables declaration//GEN-END:variables
 }
