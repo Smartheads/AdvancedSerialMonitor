@@ -190,8 +190,13 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel7 = new javax.swing.JLabel();
         customValueDelimiterTextField = new javax.swing.JTextField();
         valueDelimiterComboBox = new javax.swing.JComboBox<>();
-        importPanel = new javax.swing.JPanel();
-        exportPanel = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jSeparator5 = new javax.swing.JSeparator();
+        jLabel9 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        dataPacketModelTable = new javax.swing.JTable();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
         processingTablePanel = new javax.swing.JPanel();
         tableHeaderPanel = new javax.swing.JPanel();
         toggleTableButton = new javax.swing.JButton();
@@ -211,6 +216,11 @@ public class GraphPlotter extends javax.swing.JFrame
         footerPanel = new javax.swing.JPanel();
         bottomAddGraphButton = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        fileMenuCloseItem = new javax.swing.JMenuItem();
+        windowMenu = new javax.swing.JMenu();
+        alwaysOnTopMenuItem = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Serial Graph Plotter");
@@ -293,7 +303,7 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3))
                     .addComponent(jLabel5))
-                .addContainerGap(155, Short.MAX_VALUE))
+                .addContainerGap(183, Short.MAX_VALUE))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -348,6 +358,44 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
 
+        jLabel8.setText("Decode charset can be set on Serial Monitor.");
+
+        jSeparator5.setOrientation(javax.swing.SwingConstants.VERTICAL);
+
+        jLabel9.setFont(jLabel9.getFont().deriveFont(jLabel9.getFont().getStyle() | java.awt.Font.BOLD, jLabel9.getFont().getSize()+2));
+        jLabel9.setText("Model of incomming data packet");
+
+        dataPacketModelTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"1"}
+            },
+            new String [] {
+                "0"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        dataPacketModelTable.getTableHeader().setResizingAllowed(false);
+        dataPacketModelTable.getTableHeader().setReorderingAllowed(false);
+        jScrollPane1.setViewportView(dataPacketModelTable);
+
+        jLabel10.setText("Position");
+
+        jLabel11.setText("Size");
+
         javax.swing.GroupLayout preferencesPanelLayout = new javax.swing.GroupLayout(preferencesPanel);
         preferencesPanel.setLayout(preferencesPanelLayout);
         preferencesPanelLayout.setHorizontalGroup(
@@ -359,51 +407,57 @@ public class GraphPlotter extends javax.swing.JFrame
                     .addGroup(preferencesPanelLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(463, Short.MAX_VALUE))
+                        .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(preferencesPanelLayout.createSequentialGroup()
+                        .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(255, Short.MAX_VALUE))
         );
         preferencesPanelLayout.setVerticalGroup(
             preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(preferencesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(37, Short.MAX_VALUE))
+                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(preferencesPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel9)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(preferencesPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel11)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(preferencesPanelLayout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(preferencesPanelLayout.createSequentialGroup()
+                        .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jSeparator5)
+                            .addGroup(preferencesPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel7)
+                                    .addComponent(customValueDelimiterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(valueDelimiterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel8)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
         optionsPanel.addTab("Preferences", preferencesPanel);
-
-        javax.swing.GroupLayout importPanelLayout = new javax.swing.GroupLayout(importPanel);
-        importPanel.setLayout(importPanelLayout);
-        importPanelLayout.setHorizontalGroup(
-            importPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 721, Short.MAX_VALUE)
-        );
-        importPanelLayout.setVerticalGroup(
-            importPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 92, Short.MAX_VALUE)
-        );
-
-        optionsPanel.addTab("Import", importPanel);
-
-        javax.swing.GroupLayout exportPanelLayout = new javax.swing.GroupLayout(exportPanel);
-        exportPanel.setLayout(exportPanelLayout);
-        exportPanelLayout.setHorizontalGroup(
-            exportPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 721, Short.MAX_VALUE)
-        );
-        exportPanelLayout.setVerticalGroup(
-            exportPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 92, Short.MAX_VALUE)
-        );
-
-        optionsPanel.addTab("Export", exportPanel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -434,7 +488,7 @@ public class GraphPlotter extends javax.swing.JFrame
                 .addComponent(toggleTableButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1))
-            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 726, Short.MAX_VALUE)
+            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 754, Short.MAX_VALUE)
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -609,7 +663,7 @@ public class GraphPlotter extends javax.swing.JFrame
             .addGroup(footerPanelLayout.createSequentialGroup()
                 .addComponent(bottomAddGraphButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator2))
+                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 669, Short.MAX_VALUE))
         );
         footerPanelLayout.setVerticalGroup(
             footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -628,6 +682,32 @@ public class GraphPlotter extends javax.swing.JFrame
         gridBagConstraints.weightx = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
         getContentPane().add(footerPanel, gridBagConstraints);
+
+        fileMenu.setText("File");
+
+        fileMenuCloseItem.setText("Close");
+        fileMenuCloseItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileMenuCloseItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(fileMenuCloseItem);
+
+        menuBar.add(fileMenu);
+
+        windowMenu.setText("Window");
+
+        alwaysOnTopMenuItem.setText("Always on top");
+        alwaysOnTopMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                alwaysOnTopMenuItemActionPerformed(evt);
+            }
+        });
+        windowMenu.add(alwaysOnTopMenuItem);
+
+        menuBar.add(windowMenu);
+
+        setJMenuBar(menuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -828,33 +908,52 @@ public class GraphPlotter extends javax.swing.JFrame
         }
     }//GEN-LAST:event_customValueDelimiterTextFieldKeyTyped
 
+    private void fileMenuCloseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuCloseItemActionPerformed
+        // TODO add your handling code here:
+        this.setVisible(false);
+    }//GEN-LAST:event_fileMenuCloseItemActionPerformed
+
+    private void alwaysOnTopMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_alwaysOnTopMenuItemActionPerformed
+        // TODO add your handling code here:
+        this.setAlwaysOnTop(alwaysOnTopMenuItem.isSelected());
+    }//GEN-LAST:event_alwaysOnTopMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBoxMenuItem alwaysOnTopMenuItem;
     private javax.swing.JButton bottomAddGraphButton;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JScrollPane contentScrollPane;
     private javax.swing.JTextField customValueDelimiterTextField;
+    private javax.swing.JTable dataPacketModelTable;
     private javax.swing.JLabel dataProcessingTableLabel;
     private javax.swing.JButton deleteVariableButton;
     private javax.swing.JComboBox<String> deleteVariableComboBox;
     private javax.swing.JPanel editTablePanel;
-    private javax.swing.JPanel exportPanel;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenuItem fileMenuCloseItem;
     private javax.swing.JPanel footerPanel;
-    private javax.swing.JPanel importPanel;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
+    private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton newVariableButton;
     private javax.swing.JTabbedPane optionsPanel;
     private javax.swing.JPanel preferencesPanel;
@@ -869,5 +968,6 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JPanel toolsPanel;
     private javax.swing.JButton topAddGraphButton;
     private javax.swing.JComboBox<String> valueDelimiterComboBox;
+    private javax.swing.JMenu windowMenu;
     // End of variables declaration//GEN-END:variables
 }
