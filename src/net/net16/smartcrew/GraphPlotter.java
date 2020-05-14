@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import net.net16.smartcrew.plotter.GraphPanel;
 
 /**
@@ -28,6 +30,7 @@ public class GraphPlotter extends javax.swing.JFrame
     
     ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
+    DefaultTableModel dataPacketModel;
 
     /**
      * Creates new form SerialPlotter
@@ -45,6 +48,7 @@ public class GraphPlotter extends javax.swing.JFrame
         });
         
         processingModel = (DefaultTableModel) processingTable.getModel();
+        dataPacketModel = (DefaultTableModel) dataPacketModelTable.getModel();
         
         DefaultTableCellRenderer r1 = new DefaultTableCellRenderer();
         r1.setToolTipText("Variable position in data packet recieved over serial counting from 0.");
@@ -193,7 +197,7 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel8 = new javax.swing.JLabel();
         jSeparator5 = new javax.swing.JSeparator();
         jLabel9 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        dataPacketScrollPane = new javax.swing.JScrollPane();
         dataPacketModelTable = new javax.swing.JTable();
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
@@ -388,9 +392,11 @@ public class GraphPlotter extends javax.swing.JFrame
                 return canEdit [columnIndex];
             }
         });
+        dataPacketModelTable.setFocusable(false);
+        dataPacketModelTable.setPreferredSize(new java.awt.Dimension(25, 16));
         dataPacketModelTable.getTableHeader().setResizingAllowed(false);
         dataPacketModelTable.getTableHeader().setReorderingAllowed(false);
-        jScrollPane1.setViewportView(dataPacketModelTable);
+        dataPacketScrollPane.setViewportView(dataPacketModelTable);
 
         jLabel10.setText("Position");
 
@@ -421,7 +427,7 @@ public class GraphPlotter extends javax.swing.JFrame
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(dataPacketScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(255, Short.MAX_VALUE))
         );
         preferencesPanelLayout.setVerticalGroup(
@@ -436,11 +442,9 @@ public class GraphPlotter extends javax.swing.JFrame
                             .addGroup(preferencesPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel10)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel11)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(preferencesPanelLayout.createSequentialGroup()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addComponent(jLabel11))
+                            .addComponent(dataPacketScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(preferencesPanelLayout.createSequentialGroup()
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jSeparator5)
@@ -799,10 +803,9 @@ public class GraphPlotter extends javax.swing.JFrame
         }
         updateDeleteVariableComboBox();
         
-        for (GraphPanel gp : graphs)
-        {
+        graphs.forEach((gp) -> {
             gp.updateVariableComboBoxes();
-        }
+        });
     }//GEN-LAST:event_deleteVariableButtonActionPerformed
 
     private void processingTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_processingTablePropertyChange
@@ -877,13 +880,116 @@ public class GraphPlotter extends javax.swing.JFrame
             {
                 processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
             }
+            
+            // Update data packet model table
+            // 1. Get largest position in packet -> num of cols in data packet model
+            int largest = 0;
+            for (int e = 0; e < processingModel.getRowCount(); e++)
+            {
+                if ((int) processingModel.getValueAt(e, VARIABLE_POSITION_COL) > largest)
+                {
+                    largest = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
+                }
+            }
+            
+            // 2. Build matrix of position and size
+            int[][] data = new int[largest+1][2];
+            for (int e = 0; e < processingModel.getRowCount(); e++)
+            {
+                int lpos = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
+                data[lpos][0] = lpos;
+                data[lpos][1] = (int) processingModel.getValueAt(e, VARIABLE_SIZE_COL);
+            }
+            
+            // 2.2. Deal with duplicate position entries (keep one with larger size)
+            /*for (int e = 0; e < data.length; e++)
+            {
+                boolean fLarger = false;
+                for (int x = 0; x < e; x++)
+                {
+                    if (data[e][0] == data[x][0])
+                    {
+                        fLarger = data[e][1] <= data[x][1];
+                    }
+                }
+                
+                if (fLarger)
+                {
+                    data[e][1] = 0;
+                }
+            }*/
+            
+            // 2.3. Fill empty spaces of matrix
+            for (int e = 0; e < data.length; e++)
+            {
+                if (data[e][1] == 0)
+                {
+                    data[e][0] = e;
+                    data[e][1] = 1;
+                }
+            }
+            
+            // 3. Sort matrix
+            for (int x = 0; x < data.length-1; x++)
+            {
+                for (int y = 0; y < data[0].length-1; y++)
+                {
+                    if (data[y+1][0] < data[y][0])
+                    {
+                        int pos = data[y+1][0];
+                        int size = data[y+1][1];
+                        data[y+1][0] = data[y][0];
+                        data[y+1][1] = data[y][1];
+                        data[y][0] = pos;
+                        data[y][1] = size;
+                    }
+                }
+            }
+            
+            // Test
+            for (int x = 0; x < data.length; x++)
+            {
+                System.out.println("["+data[x][0]+"]["+data[x][1]+"]");
+            }
+            System.out.println("-----------");
+            
+            // 4. Add matrix data to data packet table
+            // 4.1. Clear table
+            /*TableColumnModel tcm = dataPacketModelTable.getColumnModel();
+            for (int e = 0; e < tcm.getColumnCount(); e++)
+            {
+                tcm.removeColumn(tcm.getColumn(e));
+            }
+            
+            // 4.2. Add data
+            for (int x = 0; x < data.length; x++)
+            {
+                tcm.addColumn(new TableColumn());
+                
+            }*/
+            String[][] sData = new String[1][data.length];
+            String[] colNames = new String[data.length];
+            
+            for (int e = 0; e < data.length; e++)
+            {
+                sData[0][e] = Integer.toString(data[e][1]);
+                colNames[e] = Integer.toString(data[e][0]);
+            }
+            
+            dataPacketModel = new DefaultTableModel(sData, colNames);
+            dataPacketModelTable.setModel(dataPacketModel);
+            //dataPacketScrollPane.setSize(75*data.length, dataPacketScrollPane.getHeight());
+            /*dataPacketModelTable.setSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
+            dataPacketModelTable.setMinimumSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
+            //dataPacketScrollPane.revalidate();
+            dataPacketModelTable.revalidate();*/
+            //dataPacketScrollPane.
         }
         
         // Update varible combo boxes in graphs
-        for(GraphPanel gp : graphs)
-        {
+        graphs.forEach((gp) -> {
             gp.updateVariableComboBoxes();
-        }
+        });
         
         updateDeleteVariableComboBox();
     }//GEN-LAST:event_processingTablePropertyChange
@@ -925,6 +1031,7 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JScrollPane contentScrollPane;
     private javax.swing.JTextField customValueDelimiterTextField;
     private javax.swing.JTable dataPacketModelTable;
+    private javax.swing.JScrollPane dataPacketScrollPane;
     private javax.swing.JLabel dataProcessingTableLabel;
     private javax.swing.JButton deleteVariableButton;
     private javax.swing.JComboBox<String> deleteVariableComboBox;
@@ -947,7 +1054,6 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
