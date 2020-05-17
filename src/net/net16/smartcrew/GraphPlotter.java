@@ -197,10 +197,11 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel8 = new javax.swing.JLabel();
         jSeparator5 = new javax.swing.JSeparator();
         jLabel9 = new javax.swing.JLabel();
-        dataPacketScrollPane = new javax.swing.JScrollPane();
-        dataPacketModelTable = new javax.swing.JTable();
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
+        dataPacketPanel = new javax.swing.JPanel();
+        dataPacketScrollPane = new javax.swing.JScrollPane();
+        dataPacketModelTable = new javax.swing.JTable();
         processingTablePanel = new javax.swing.JPanel();
         tableHeaderPanel = new javax.swing.JPanel();
         toggleTableButton = new javax.swing.JButton();
@@ -307,7 +308,7 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3))
                     .addComponent(jLabel5))
-                .addContainerGap(183, Short.MAX_VALUE))
+                .addContainerGap(216, Short.MAX_VALUE))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -369,6 +370,16 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel9.setFont(jLabel9.getFont().deriveFont(jLabel9.getFont().getStyle() | java.awt.Font.BOLD, jLabel9.getFont().getSize()+2));
         jLabel9.setText("Model of incomming data packet");
 
+        jLabel10.setText("Position");
+
+        jLabel11.setText("Size");
+
+        dataPacketPanel.setLayout(new javax.swing.BoxLayout(dataPacketPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        dataPacketScrollPane.setAlignmentX(0.0F);
+        dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(25, 50));
+        dataPacketScrollPane.setPreferredSize(new java.awt.Dimension(25, 50));
+
         dataPacketModelTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {"1"}
@@ -392,15 +403,14 @@ public class GraphPlotter extends javax.swing.JFrame
                 return canEdit [columnIndex];
             }
         });
+        dataPacketModelTable.setEnabled(false);
         dataPacketModelTable.setFocusable(false);
         dataPacketModelTable.setPreferredSize(new java.awt.Dimension(25, 16));
         dataPacketModelTable.getTableHeader().setResizingAllowed(false);
         dataPacketModelTable.getTableHeader().setReorderingAllowed(false);
         dataPacketScrollPane.setViewportView(dataPacketModelTable);
 
-        jLabel10.setText("Position");
-
-        jLabel11.setText("Size");
+        dataPacketPanel.add(dataPacketScrollPane);
 
         javax.swing.GroupLayout preferencesPanelLayout = new javax.swing.GroupLayout(preferencesPanel);
         preferencesPanel.setLayout(preferencesPanelLayout);
@@ -426,9 +436,9 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(dataPacketScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(255, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dataPacketPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(162, Short.MAX_VALUE))
         );
         preferencesPanelLayout.setVerticalGroup(
             preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -439,16 +449,16 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addComponent(jLabel9)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(preferencesPanelLayout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel11))
-                            .addComponent(dataPacketScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(dataPacketPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(12, Short.MAX_VALUE))
                     .addGroup(preferencesPanelLayout.createSequentialGroup()
-                        .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator5)
+                        .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(preferencesPanelLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jSeparator5, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, preferencesPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -492,7 +502,7 @@ public class GraphPlotter extends javax.swing.JFrame
                 .addComponent(toggleTableButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1))
-            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 754, Short.MAX_VALUE)
+            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 787, Short.MAX_VALUE)
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -667,7 +677,7 @@ public class GraphPlotter extends javax.swing.JFrame
             .addGroup(footerPanelLayout.createSequentialGroup()
                 .addComponent(bottomAddGraphButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 669, Short.MAX_VALUE))
+                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 702, Short.MAX_VALUE))
         );
         footerPanelLayout.setVerticalGroup(
             footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -978,6 +988,7 @@ public class GraphPlotter extends javax.swing.JFrame
             
             dataPacketModel = new DefaultTableModel(sData, colNames);
             dataPacketModelTable.setModel(dataPacketModel);
+            dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(25*data.length, dataPacketScrollPane.getHeight()));
             //dataPacketScrollPane.setSize(75*data.length, dataPacketScrollPane.getHeight());
             /*dataPacketModelTable.setSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
             dataPacketModelTable.setMinimumSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
@@ -1031,6 +1042,7 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JScrollPane contentScrollPane;
     private javax.swing.JTextField customValueDelimiterTextField;
     private javax.swing.JTable dataPacketModelTable;
+    private javax.swing.JPanel dataPacketPanel;
     private javax.swing.JScrollPane dataPacketScrollPane;
     private javax.swing.JLabel dataProcessingTableLabel;
     private javax.swing.JButton deleteVariableButton;
