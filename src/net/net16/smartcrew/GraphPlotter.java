@@ -5,14 +5,13 @@
  */
 package net.net16.smartcrew;
 
+import com.fazecast.jSerialComm.SerialPortEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import net.net16.smartcrew.plotter.GraphPanel;
 
 /**
@@ -130,7 +129,7 @@ public class GraphPlotter extends javax.swing.JFrame
         }
         
         // 2. Sort variable names
-        for (int x = 0; x < names.length; x++)
+        for (int x = 0; x < names.length-1; x++)
         {
             for (int i = 0; i < names.length-1; i++)
             {
@@ -163,6 +162,11 @@ public class GraphPlotter extends javax.swing.JFrame
     double formatValue(double value, String format)
     {
         return 0;
+    }
+    
+    public void SerialEvent (SerialPortEvent e)
+    {
+        // Parse data
     }
 
     /**
@@ -202,6 +206,7 @@ public class GraphPlotter extends javax.swing.JFrame
         dataPacketPanel = new javax.swing.JPanel();
         dataPacketScrollPane = new javax.swing.JScrollPane();
         dataPacketModelTable = new javax.swing.JTable();
+        packetLengthLabel = new javax.swing.JLabel();
         processingTablePanel = new javax.swing.JPanel();
         tableHeaderPanel = new javax.swing.JPanel();
         toggleTableButton = new javax.swing.JButton();
@@ -230,7 +235,7 @@ public class GraphPlotter extends javax.swing.JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Serial Graph Plotter");
         setIconImage(new ImageIcon(getClass().getResource("/line_graph.png")).getImage());
-        setMinimumSize(new java.awt.Dimension(800, 500));
+        setMinimumSize(new java.awt.Dimension(850, 500));
         setPreferredSize(new java.awt.Dimension(750, 680));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -308,7 +313,7 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3))
                     .addComponent(jLabel5))
-                .addContainerGap(216, Short.MAX_VALUE))
+                .addContainerGap(155, Short.MAX_VALUE))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -377,22 +382,22 @@ public class GraphPlotter extends javax.swing.JFrame
         dataPacketPanel.setLayout(new javax.swing.BoxLayout(dataPacketPanel, javax.swing.BoxLayout.Y_AXIS));
 
         dataPacketScrollPane.setAlignmentX(0.0F);
-        dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(25, 50));
-        dataPacketScrollPane.setPreferredSize(new java.awt.Dimension(25, 50));
+        dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(75, 50));
+        dataPacketScrollPane.setPreferredSize(new java.awt.Dimension(75, 50));
 
         dataPacketModelTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"1"}
+                {"1", "1", "1"}
             },
             new String [] {
-                "0"
+                "0", "1", "2"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false
+                false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -405,12 +410,13 @@ public class GraphPlotter extends javax.swing.JFrame
         });
         dataPacketModelTable.setEnabled(false);
         dataPacketModelTable.setFocusable(false);
-        dataPacketModelTable.setPreferredSize(new java.awt.Dimension(25, 16));
         dataPacketModelTable.getTableHeader().setResizingAllowed(false);
         dataPacketModelTable.getTableHeader().setReorderingAllowed(false);
         dataPacketScrollPane.setViewportView(dataPacketModelTable);
 
         dataPacketPanel.add(dataPacketScrollPane);
+
+        packetLengthLabel.setText("Packet length: 3 bytes");
 
         javax.swing.GroupLayout preferencesPanelLayout = new javax.swing.GroupLayout(preferencesPanel);
         preferencesPanel.setLayout(preferencesPanelLayout);
@@ -430,15 +436,17 @@ public class GraphPlotter extends javax.swing.JFrame
                 .addGap(10, 10, 10)
                 .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(preferencesPanelLayout.createSequentialGroup()
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dataPacketPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(162, Short.MAX_VALUE))
+                        .addComponent(dataPacketPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
+                .addComponent(packetLengthLabel)
+                .addContainerGap())
         );
         preferencesPanelLayout.setVerticalGroup(
             preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -450,8 +458,9 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(dataPacketPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(12, Short.MAX_VALUE))
+                            .addComponent(dataPacketPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(packetLengthLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(preferencesPanelLayout.createSequentialGroup()
                         .addGroup(preferencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(preferencesPanelLayout.createSequentialGroup()
@@ -502,7 +511,7 @@ public class GraphPlotter extends javax.swing.JFrame
                 .addComponent(toggleTableButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1))
-            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 787, Short.MAX_VALUE)
+            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 726, Short.MAX_VALUE)
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -526,8 +535,8 @@ public class GraphPlotter extends javax.swing.JFrame
         processingTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {"var1",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
-                {"var2",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
-                {"var3",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)}
+                {"var2",  new Integer(1),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
+                {"var3",  new Integer(2),  new Integer(1), null,  new Double(0.0),  new Double(0.0)}
             },
             new String [] {
                 "Variable name", "Position in packet", "Variable size (bytes)", "Preprocessing rule", "Raw value (example)", "Formatted value"
@@ -677,7 +686,7 @@ public class GraphPlotter extends javax.swing.JFrame
             .addGroup(footerPanelLayout.createSequentialGroup()
                 .addComponent(bottomAddGraphButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 702, Short.MAX_VALUE))
+                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 641, Short.MAX_VALUE))
         );
         footerPanelLayout.setVerticalGroup(
             footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -890,112 +899,81 @@ public class GraphPlotter extends javax.swing.JFrame
             {
                 processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
             }
-            
-            // Update data packet model table
-            // 1. Get largest position in packet -> num of cols in data packet model
-            int largest = 0;
-            for (int e = 0; e < processingModel.getRowCount(); e++)
+        }
+        
+        // Update data packet model table
+        // 1. Get largest position in packet -> num of cols in data packet model
+        int largest = 0;
+        for (int e = 0; e < processingModel.getRowCount(); e++)
+        {
+            if ((int) processingModel.getValueAt(e, VARIABLE_POSITION_COL) > largest)
             {
-                if ((int) processingModel.getValueAt(e, VARIABLE_POSITION_COL) > largest)
-                {
-                    largest = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
-                }
+                largest = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
             }
+        }
+
+        // 2. Build matrix of position and size
+        int[][] data = new int[largest+1][2];
+        for (int e = 0; e < processingModel.getRowCount(); e++)
+        {
+            int lpos = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
+            data[lpos][0] = lpos;
             
-            // 2. Build matrix of position and size
-            int[][] data = new int[largest+1][2];
-            for (int e = 0; e < processingModel.getRowCount(); e++)
+            // Keep largest variable size
+            if (data[lpos][1] <(int) processingModel.getValueAt(e, VARIABLE_SIZE_COL))
             {
-                int lpos = (int) processingModel.getValueAt(e, VARIABLE_POSITION_COL);
-                data[lpos][0] = lpos;
                 data[lpos][1] = (int) processingModel.getValueAt(e, VARIABLE_SIZE_COL);
             }
-            
-            // 2.2. Deal with duplicate position entries (keep one with larger size)
-            /*for (int e = 0; e < data.length; e++)
-            {
-                boolean fLarger = false;
-                for (int x = 0; x < e; x++)
-                {
-                    if (data[e][0] == data[x][0])
-                    {
-                        fLarger = data[e][1] <= data[x][1];
-                    }
-                }
-                
-                if (fLarger)
-                {
-                    data[e][1] = 0;
-                }
-            }*/
-            
-            // 2.3. Fill empty spaces of matrix
-            for (int e = 0; e < data.length; e++)
-            {
-                if (data[e][1] == 0)
-                {
-                    data[e][0] = e;
-                    data[e][1] = 1;
-                }
-            }
-            
-            // 3. Sort matrix
-            for (int x = 0; x < data.length-1; x++)
-            {
-                for (int y = 0; y < data[0].length-1; y++)
-                {
-                    if (data[y+1][0] < data[y][0])
-                    {
-                        int pos = data[y+1][0];
-                        int size = data[y+1][1];
-                        data[y+1][0] = data[y][0];
-                        data[y+1][1] = data[y][1];
-                        data[y][0] = pos;
-                        data[y][1] = size;
-                    }
-                }
-            }
-            
-            // Test
-            for (int x = 0; x < data.length; x++)
-            {
-                System.out.println("["+data[x][0]+"]["+data[x][1]+"]");
-            }
-            System.out.println("-----------");
-            
-            // 4. Add matrix data to data packet table
-            // 4.1. Clear table
-            /*TableColumnModel tcm = dataPacketModelTable.getColumnModel();
-            for (int e = 0; e < tcm.getColumnCount(); e++)
-            {
-                tcm.removeColumn(tcm.getColumn(e));
-            }
-            
-            // 4.2. Add data
-            for (int x = 0; x < data.length; x++)
-            {
-                tcm.addColumn(new TableColumn());
-                
-            }*/
-            String[][] sData = new String[1][data.length];
-            String[] colNames = new String[data.length];
-            
-            for (int e = 0; e < data.length; e++)
-            {
-                sData[0][e] = Integer.toString(data[e][1]);
-                colNames[e] = Integer.toString(data[e][0]);
-            }
-            
-            dataPacketModel = new DefaultTableModel(sData, colNames);
-            dataPacketModelTable.setModel(dataPacketModel);
-            dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(25*data.length, dataPacketScrollPane.getHeight()));
-            //dataPacketScrollPane.setSize(75*data.length, dataPacketScrollPane.getHeight());
-            /*dataPacketModelTable.setSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
-            dataPacketModelTable.setMinimumSize(new java.awt.Dimension(75*data.length,dataPacketModelTable.getHeight()));
-            //dataPacketScrollPane.revalidate();
-            dataPacketModelTable.revalidate();*/
-            //dataPacketScrollPane.
         }
+
+        // 2.1. Fill empty spaces of matrix
+        for (int e = 0; e < data.length; e++)
+        {
+            if (data[e][1] == 0)
+            {
+                data[e][0] = e;
+                data[e][1] = 1;
+            }
+        }
+
+        // 3. Sort matrix
+        for (int x = 0; x < data.length-1; x++)
+        {
+            for (int y = 0; y < data[0].length-1; y++)
+            {
+                if (data[y+1][0] < data[y][0])
+                {
+                    int pos = data[y+1][0];
+                    int size = data[y+1][1];
+                    data[y+1][0] = data[y][0];
+                    data[y+1][1] = data[y][1];
+                    data[y][0] = pos;
+                    data[y][1] = size;
+                }
+            }
+        }
+
+        // 4.2. Add data to packet model
+        String[][] sData = new String[1][data.length];
+        String[] colNames = new String[data.length];
+
+        for (int e = 0; e < data.length; e++)
+        {
+            sData[0][e] = Integer.toString(data[e][1]);
+            colNames[e] = Integer.toString(data[e][0]);
+        }
+
+        dataPacketModel = new DefaultTableModel(sData, colNames);
+        dataPacketModelTable.setModel(dataPacketModel);
+        dataPacketScrollPane.setMaximumSize(new java.awt.Dimension(25*data.length, dataPacketScrollPane.getHeight()));
+        
+        // 4.3. Calculate packet length and display it
+        int sum = 0;
+        for (int[] row : data)
+        {
+            sum += row[1];
+        }
+        packetLengthLabel.setText("Packet length: "+sum+" bytes");
         
         // Update varible combo boxes in graphs
         graphs.forEach((gp) -> {
@@ -1074,6 +1052,7 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton newVariableButton;
     private javax.swing.JTabbedPane optionsPanel;
+    private javax.swing.JLabel packetLengthLabel;
     private javax.swing.JPanel preferencesPanel;
     private javax.swing.JTable processingTable;
     private javax.swing.JPanel processingTablePanel;

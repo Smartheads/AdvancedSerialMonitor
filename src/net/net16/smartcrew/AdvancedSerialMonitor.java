@@ -29,7 +29,7 @@ import org.apache.commons.io.IOUtils;
 
 /**
  *
- * @author rohu7
+ * @author Robert Hutter
  */
 public final class AdvancedSerialMonitor extends JFrame implements SerialPortDataListener
 {
@@ -120,6 +120,12 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     {  
         String data;
         
+        // Update graphplotter
+        if (gp.isVisible())
+        { 
+            gp.SerialEvent(event);
+        }
+            
         // If decodeCharset equals null, don't decode numbers
         if (decodeCharset == null)
         {
@@ -1675,7 +1681,11 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
             portComboBox.addItem("Select");
     }
 
-    //<editor-fold>
+    public String getDecodeCharset()
+    {
+        return decodeCharset;
+    }
+//<editor-fold>
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel StreamConsolePanel;
     private javax.swing.JFrame about;
