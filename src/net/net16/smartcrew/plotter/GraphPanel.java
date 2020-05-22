@@ -5,6 +5,7 @@
  */
 package net.net16.smartcrew.plotter;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +15,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.geom.AffineTransform;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -161,8 +163,8 @@ public class GraphPanel extends JPanel
         xPaddingPanel.add(xPanel, xpgc);
         
         xAxisComboBox = new JComboBox();
-        xVariableTextField = new JTextField();
-        xUnitTextField = new JTextField();
+        xVariableTextField = new JTextField("x Axis");
+        xUnitTextField = new JTextField("1");
         xUseTimeAxisCheckBox = new JCheckBox();
         xUseTimeAxisCheckBox.setText("Use time axis");
         
@@ -181,6 +183,14 @@ public class GraphPanel extends JPanel
             @Override
             public void popupMenuCanceled(PopupMenuEvent e) {
             }
+        });
+        
+        xVariableTextField.addActionListener((ActionEvent e) -> {
+            xVariableTextFieldActionPerformed(e);
+        });
+        
+        xUnitTextField.addActionListener((ActionEvent e) -> {
+            xUnitTextFieldActionPerformed(e);
         });
         
         xUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
@@ -246,8 +256,8 @@ public class GraphPanel extends JPanel
         yPaddingPanel.add(yPanel, ypgc);
         
         yAxisComboBox = new JComboBox();
-        yVariableTextField = new JTextField();
-        yUnitTextField = new JTextField();
+        yVariableTextField = new JTextField("y Axis");
+        yUnitTextField = new JTextField("1");
         yUseTimeAxisCheckBox = new JCheckBox();
         yUseTimeAxisCheckBox.setText("Use time axis");
         
@@ -266,6 +276,14 @@ public class GraphPanel extends JPanel
             @Override
             public void popupMenuCanceled(PopupMenuEvent e) {
             }
+        });
+        
+        yVariableTextField.addActionListener((ActionEvent e) -> {
+            yVariableTextFieldActionPerformed(e);
+        });
+        
+        yUnitTextField.addActionListener((ActionEvent e) -> {
+            yUnitTextFieldActionPerformed(e);
         });
         
         yUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
@@ -404,6 +422,26 @@ public class GraphPanel extends JPanel
         updateYAxisComboBox();
     }
     
+    private void xVariableTextFieldActionPerformed(ActionEvent e)
+    {
+        g.setXAxisName(xVariableTextField.getText());
+    }
+    
+    private void yVariableTextFieldActionPerformed(ActionEvent e)
+    {
+        g.setYAxisName(xVariableTextField.getText());
+    }
+    
+    private void xUnitTextFieldActionPerformed(ActionEvent e)
+    {
+        g.setXUnitName(xUnitTextField.getText());
+    }
+
+    private void yUnitTextFieldActionPerformed(ActionEvent e)
+    {
+        g.setYUnitName(yUnitTextField.getText());
+    }
+    
     private void xUseTimeAxisCheckBoxActionPerformed(ActionEvent evt)
     {
         if (xUseTimeAxisCheckBox.isSelected())
@@ -478,6 +516,17 @@ class Graph extends JComponent implements Runnable
     Axis x;
     Axis y;
     
+    int xOrigin;
+    int yOrigin;
+    
+    final static int PADDING = 20;
+    final static BasicStroke axisStroke;
+    
+    static
+    {
+        axisStroke = new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+    }
+    
     /**
      * 
      * @param x
@@ -494,15 +543,43 @@ class Graph extends JComponent implements Runnable
      */
     public Graph()
     {
-        this(new Axis("x Axis", null, null), new Axis("y Axis", null, null));
+        this(new Axis("x Axis", "1", "1"), new Axis("y Axis", "1", "1"));
     }
     
     @Override
     public void paintComponent(Graphics g)
     {
+        xOrigin = PADDING;
+        yOrigin = this.getHeight()-PADDING;
+        
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(Color.white);
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
+        
+        final AffineTransform normalTransform = g2d.getTransform();
+        
+        // Draw axis
+        g2d.setColor(Color.black);
+        g2d.setStroke(axisStroke);
+        g2d.drawLine(xOrigin, yOrigin, PADDING, PADDING); // yAxis
+        g2d.drawLine(xOrigin, yOrigin, this.getWidth()-PADDING, yOrigin); // xAxis
+        // xAxis cap
+        g2d.drawLine(xOrigin-6, PADDING+8, xOrigin, PADDING);
+        g2d.drawLine(xOrigin, PADDING, xOrigin+6, PADDING+8);
+        // yAxis cap
+        g2d.drawLine(this.getWidth()-PADDING-8, yOrigin+6, this.getWidth()-PADDING, yOrigin);
+        g2d.drawLine(this.getWidth()-PADDING-8, yOrigin-6, this.getWidth()-PADDING, yOrigin);
+        // xAxis label
+        g2d.drawString(x.getName(), (this.getWidth()-2*PADDING)/2, (this.getHeight()-PADDING/2)+5);
+        // xAxis unit
+        g2d.drawString(x.getUnit(), (this.getWidth()-2*PADDING),(this.getHeight()-PADDING/2)+5);
+        // yAxis unit
+        g2d.rotate(Math.PI/2);
+        g2d.drawString(y.getUnit(), (1.5f*PADDING), -(PADDING/2-5));
+        //g2d.drawString(y.getUnit(), this.getWidth()/2, this.getHeight()/2);
+        // yAxis label
+        g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
+        g2d.setTransform(normalTransform);
     }
     
     @Override
@@ -516,14 +593,54 @@ class Graph extends JComponent implements Runnable
         
     }
     
+    public void setXAxisName(String name)
+    {
+        if (name.strip().equals(""))
+        {
+            name = "x Axis";
+        }
+        x.setName(name);
+        this.repaint();
+    }
+    
     public String getXAxisName()
     {
         return x.getName();
     }
     
+    public void setYAxisName(String name)
+    {
+        if (name.strip().equals(""))
+        {
+            name = "y Axis";
+        }
+        y.setName(name);
+        this.repaint();
+    }
+    
     public String getYAxisName()
     {
         return y.getName();
+    }
+    
+    public void setXUnitName(String name)
+    {
+        if (name.strip().equals(""))
+        {
+            name = "1";
+        }
+        x.setUnit(name);
+        this.repaint();
+    }
+    
+    public void setYUnitName(String name)
+    {
+        if (name.strip().equals(""))
+        {
+            name = "1";
+        }
+        y.setUnit(name);
+        this.repaint();
     }
     
     public String getXAxisUnit()

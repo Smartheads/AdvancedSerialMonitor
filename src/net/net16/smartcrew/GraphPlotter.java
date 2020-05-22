@@ -30,6 +30,13 @@ public class GraphPlotter extends javax.swing.JFrame
     ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
     DefaultTableModel dataPacketModel;
+    
+    ArrayList<Byte> incommingPacket;
+    int sizeofPacket = 3;
+    
+    {
+        incommingPacket = new ArrayList<>();
+    }
 
     /**
      * Creates new form SerialPlotter
@@ -166,7 +173,26 @@ public class GraphPlotter extends javax.swing.JFrame
     
     public void SerialEvent (SerialPortEvent e)
     {
-        // Parse data
+        for (byte b : e.getReceivedData())
+        {
+            incommingPacket.add(b);
+        }
+        
+        if(incommingPacket.size() >= sizeofPacket)
+        {
+            // Parse packet
+            //...
+            
+            if (incommingPacket.size() > sizeofPacket)
+            {
+                Byte[] buff = (Byte[]) incommingPacket.subList(sizeofPacket-1, incommingPacket.size()-1).toArray();
+                incommingPacket.clear();
+                for (Byte b : buff)
+                {
+                    incommingPacket.add(b);
+                }
+            }
+        }
     }
 
     /**
@@ -350,7 +376,7 @@ public class GraphPlotter extends javax.swing.JFrame
         jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+2));
         jLabel3.setText("Setup incomming data packet");
 
-        jLabel7.setText("Value delimiter (char)");
+        jLabel7.setText("Packet delimiter (char)");
 
         customValueDelimiterTextField.setColumns(1);
         customValueDelimiterTextField.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -359,7 +385,7 @@ public class GraphPlotter extends javax.swing.JFrame
             }
         });
 
-        valueDelimiterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Comma ','", "Tab '\\t'", "Semi-colin ';'", "Newline '\\n'", "Carrige-return '\\r'", "Other" }));
+        valueDelimiterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Based on size", "Comma ','", "Tab '\\t'", "Semi-colin ';'", "Newline '\\n'", "Carrige-return '\\r'", "Other" }));
         valueDelimiterComboBox.setMinimumSize(new java.awt.Dimension(108, 20));
         valueDelimiterComboBox.setPreferredSize(new java.awt.Dimension(108, 20));
         valueDelimiterComboBox.addActionListener(new java.awt.event.ActionListener() {
@@ -444,7 +470,7 @@ public class GraphPlotter extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dataPacketPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112, Short.MAX_VALUE)
                 .addComponent(packetLengthLabel)
                 .addContainerGap())
         );
@@ -974,6 +1000,9 @@ public class GraphPlotter extends javax.swing.JFrame
             sum += row[1];
         }
         packetLengthLabel.setText("Packet length: "+sum+" bytes");
+        
+        // Setup size
+        sizeofPacket = sum;
         
         // Update varible combo boxes in graphs
         graphs.forEach((gp) -> {
