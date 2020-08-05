@@ -9,6 +9,7 @@ import com.fazecast.jSerialComm.SerialPortEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -18,7 +19,7 @@ import net.net16.smartcrew.plotter.GraphPanel;
  *
  * @author Robert Hutter
  */
-public class GraphPlotter extends javax.swing.JFrame
+public class GraphPlotter extends javax.swing.JFrame implements Runnable
 {
     public final static int VARIABLE_NAME_COL = 0;
     public final static int VARIABLE_POSITION_COL = 1;
@@ -27,12 +28,16 @@ public class GraphPlotter extends javax.swing.JFrame
     public final static int EXAMPLE_VALUE_COL = 4;
     public final static int FORMATTED_VALUE_COL = 5;
     
+    final static long GRAPH_REFRESH_RATE = 33333333; // Refresh rate of graphs (nano seconds)
+    
     ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
     DefaultTableModel dataPacketModel;
     
     ArrayList<Byte> incommingPacket;
     int sizeofPacket = 3;
+    
+    Thread mainTimer;
     
     {
         incommingPacket = new ArrayList<>();
@@ -49,7 +54,7 @@ public class GraphPlotter extends javax.swing.JFrame
             @Override
             public void windowClosing(WindowEvent e)
             {
-                GraphPlotter.this.setVisible(false);
+                GraphPlotter.this.startStopGraphPlotter(false);
             }
         });
         
@@ -75,7 +80,30 @@ public class GraphPlotter extends javax.swing.JFrame
         customValueDelimiterTextField.setVisible(false);
         
         graphs = new ArrayList<>();
-        addGraph();
+    }
+    
+    /**
+     * Start/stop graph plotter
+     * 
+     * @param state true - start, false - stop
+     */
+    public void startStopGraphPlotter (boolean state)
+    {
+        if (state)
+        {
+            addGraph();
+            mainTimer = new Thread(this, "graphplottertimer");
+            mainTimer.start();
+            mainTimer.setPriority(Thread.MAX_PRIORITY);
+            this.setLocation(this.getX() + 50, this.getY() + 50);
+            this.setVisible(true);
+        }
+        else
+        {
+            mainTimer.interrupt();
+            graphs.clear();
+            this.setVisible(false);
+        }
     }
     
     /**
@@ -178,21 +206,34 @@ public class GraphPlotter extends javax.swing.JFrame
             incommingPacket.add(b);
         }
         
-        if(incommingPacket.size() >= sizeofPacket)
+        // Switch packet delimiter
+        if (((String)valueDelimiterComboBox.getSelectedItem()).equals("Based on size"))
         {
-            // Parse packet
-            //...
-            
-            if (incommingPacket.size() > sizeofPacket)
+            if(incommingPacket.size() >= sizeofPacket)
             {
-                Byte[] buff = (Byte[]) incommingPacket.subList(sizeofPacket-1, incommingPacket.size()-1).toArray();
-                incommingPacket.clear();
-                for (Byte b : buff)
+                // Parse packet
+                parseIncommingPacket();
+
+                if (incommingPacket.size() > sizeofPacket)
                 {
-                    incommingPacket.add(b);
+                    Byte[] buff = (Byte[]) incommingPacket.subList(sizeofPacket-1, incommingPacket.size()-1).toArray();
+                    incommingPacket.clear();
+                    incommingPacket.addAll(Arrays.asList(buff));
                 }
             }
         }
+        else
+        {
+            System.out.println("Unsupported feature actived...");
+        }
+    }
+    
+    /**
+     * Parses the buffered data packet.
+     */
+    void parseIncommingPacket()
+    {
+        
     }
 
     /**
@@ -1096,4 +1137,20 @@ public class GraphPlotter extends javax.swing.JFrame
     private javax.swing.JComboBox<String> valueDelimiterComboBox;
     private javax.swing.JMenu windowMenu;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        long xBase = System.currentTimeMillis();
+        long lastUpdate = 0;
+        for (;;)
+        {
+            // DEMO
+            if (lastUpdate + 20000000 <= System.nanoTime())
+            {
+                int x = (int) (System.currentTimeMillis() - xBase) / 20;
+                graphs.get(0).putData(x, (int) (Math.sin(x)*10) + 100);
+                lastUpdate = System.nanoTime();
+            }
+        }
+    }
 }

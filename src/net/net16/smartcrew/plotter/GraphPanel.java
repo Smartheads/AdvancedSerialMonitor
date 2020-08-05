@@ -15,7 +15,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,6 +49,7 @@ public class GraphPanel extends JPanel
     JTabbedPane options;
     JPanel xPanel;
     JPanel yPanel;
+    JPanel gSettings;
     JSeparator js;
     JButton hideShowButton;
     JComboBox xAxisComboBox;
@@ -58,6 +62,9 @@ public class GraphPanel extends JPanel
     JCheckBox yUseTimeAxisCheckBox;
     public GridBagConstraints constraints;
     DefaultTableModel processingModel;
+    
+    final public static int GRAPH_WIDTH = 400;
+    final public static int GRAPH_HEIGHT = 200;
     
     public GraphPanel(int gridy)
     {
@@ -123,7 +130,7 @@ public class GraphPanel extends JPanel
         g = new Graph();
         options = new JTabbedPane();
         
-        g.setPreferredSize(new Dimension(400, 200));
+        g.setPreferredSize(new Dimension(GRAPH_WIDTH, GRAPH_HEIGHT));
         gC.gridx = 0;
         gC.gridy = 0;
         gC.gridwidth = 1;
@@ -143,6 +150,7 @@ public class GraphPanel extends JPanel
         // Setup tabbed panes
         xPanel = new JPanel();
         yPanel = new JPanel();
+        gSettings = new JPanel();
         
         // xPanel
         JPanel xPaddingPanel = new JPanel();
@@ -330,18 +338,18 @@ public class GraphPanel extends JPanel
                     .addComponent(yUseTimeAxisCheckBox)
         );
         
+        // gSettings
+        
+        
+        
         options.addTab("x-Axis", xPaddingPanel);
         options.addTab("y-Axis", yPaddingPanel);
+        //options.addTab("Settings", gSettings); NOT READY YET
         
         contentPanel.add(g, gC);
         contentPanel.add(options, optionsC);
         
         super.add(contentPanel, BorderLayout.PAGE_END);
-    }
-    
-    void updateGraph()
-    {
-        g.update();
     }
     
     /**
@@ -509,9 +517,25 @@ public class GraphPanel extends JPanel
         updateXAxisComboBox();
         updateYAxisComboBox();
     }
+    
+    /**
+     *  Puts data on graph
+     * 
+     * @param x
+     * @param y 
+     */
+    public synchronized void putData(int x, int y)
+    {
+        g.put(x, y);
+    }
+    
+    public synchronized void updateGraphics()
+    {
+        g.repaint();
+    }
 }
 
-class Graph extends JComponent implements Runnable
+class Graph extends JComponent implements ComponentListener
 {
     Axis x;
     Axis y;
@@ -521,10 +545,23 @@ class Graph extends JComponent implements Runnable
     
     final static int PADDING = 20;
     final static BasicStroke axisStroke;
+    final int DATA_HEIGHT; // Height of data display area, CONSTANT
+    int data_width; // Width of data display area, DYNAMIC
+    
+    ArrayList<Integer> xdata;
+    ArrayList<Integer> ydata;
     
     static
     {
         axisStroke = new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+    }
+    
+    {
+        super.addComponentListener(this);
+        DATA_HEIGHT = GraphPanel.GRAPH_HEIGHT - 2 * PADDING - 2 ; // height - 2*padding - axis width
+        data_width = GraphPanel.GRAPH_WIDTH - 2 * PADDING - 2; // width - 2*padding - axis width
+        xdata = new ArrayList<>();
+        ydata = new ArrayList<>();
     }
     
     /**
@@ -547,7 +584,7 @@ class Graph extends JComponent implements Runnable
     }
     
     @Override
-    public void paintComponent(Graphics g)
+    public synchronized void paintComponent(Graphics g)
     {
         xOrigin = PADDING;
         yOrigin = this.getHeight()-PADDING;
@@ -580,17 +617,53 @@ class Graph extends JComponent implements Runnable
         // yAxis label
         g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
         g2d.setTransform(normalTransform);
-    }
-    
-    @Override
-    public void run()
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    public void update()
-    {
         
+        g2d.setColor(Color.red);
+        g2d.fillRect(PADDING + 2, PADDING, data_width, DATA_HEIGHT);
+        g2d.setColor(Color.blue);
+        
+        // Check if all datapoints fit into the graph
+        if (xdata.get(xdata.size() - 1) - xdata.get(0) > data_width) // True if they dont
+        {
+            for (int i = 0; i < xdata.size(); i++)
+            {
+                if (xdata.get(xdata.size() - 1) - xdata.get(i) <= data_width)
+                {
+                    break;
+                }
+                else
+                {
+                    xdata.remove(0);
+                    ydata.remove(0);
+                    i--;
+                }
+            }
+        }
+        
+        // Convert x values to graphics coordinates
+        int dxdata[] = new int[xdata.size()];
+        int dydata[] = new int[ydata.size()];
+        
+        for (int i = 0; i < xdata.size(); i++)
+        {
+            dxdata[i] = xOrigin + xdata.get(i) - xdata.get(0);
+            dydata[i] = yOrigin - ydata.get(i);
+        }
+        
+        g2d.drawPolyline(dxdata, dydata, xdata.size());
+    }
+    
+    /**
+     * Adds a point to the data buffer
+     * 
+     * @param x
+     * @param y 
+     */
+    public synchronized void put(int x, int y)
+    {
+        xdata.add(x);
+        ydata.add(y);
+        this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
     }
     
     public void setXAxisName(String name)
@@ -651,6 +724,31 @@ class Graph extends JComponent implements Runnable
     public String getYAxisUnit()
     {
         return y.getUnit();
+    }
+
+    @Override
+    public synchronized void componentResized(ComponentEvent e)
+    {
+        data_width = this.getWidth() - 2 * PADDING - 2; // width - 2*padding - axis width
+        this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e)
+    {
+        
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e)
+    {
+        
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e)
+    {
+        
     }
 }
 

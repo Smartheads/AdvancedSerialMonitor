@@ -1436,8 +1436,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         // TODO add your handling code here:
-        gp.setLocation(this.getX() + 50, this.getY() + 50);
-        gp.setVisible(true);
+        gp.startStopGraphPlotter(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     /**
