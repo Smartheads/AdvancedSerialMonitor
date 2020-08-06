@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2020 Robert Hutter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package net.net16.smartcrew.plotter;
 
@@ -49,7 +60,7 @@ public class GraphPanel extends JPanel
     JTabbedPane options;
     JPanel xPanel;
     JPanel yPanel;
-    JPanel gSettings;
+    JPanel gSettingsPanel;
     JSeparator js;
     JButton hideShowButton;
     JComboBox xAxisComboBox;
@@ -60,6 +71,8 @@ public class GraphPanel extends JPanel
     JTextField yVariableTextField;
     JTextField yUnitTextField;
     JCheckBox yUseTimeAxisCheckBox;
+    JComboBox graphLayoutComboBox;
+    JButton graphClearButton;
     public GridBagConstraints constraints;
     DefaultTableModel processingModel;
     
@@ -150,7 +163,7 @@ public class GraphPanel extends JPanel
         // Setup tabbed panes
         xPanel = new JPanel();
         yPanel = new JPanel();
-        gSettings = new JPanel();
+        gSettingsPanel = new JPanel();
         
         // xPanel
         JPanel xPaddingPanel = new JPanel();
@@ -339,12 +352,89 @@ public class GraphPanel extends JPanel
         );
         
         // gSettings
+        JPanel gSettingsPaddingPanel = new JPanel();
+        gSettingsPaddingPanel.setLayout(new GridBagLayout());
         
+        JLabel gSettingsLabel = new JLabel("Graph setup", SwingConstants.CENTER);
+        gSettingsLabel.setFont(gSettingsLabel.getFont().deriveFont(yAxisOptionsLabel.getFont().getStyle() | java.awt.Font.BOLD, gSettingsLabel.getFont().getSize()+2));
+        GridBagConstraints gspgcl = new GridBagConstraints();
+        gspgcl.fill = GridBagConstraints.HORIZONTAL;
+        gspgcl.weightx = 0.1;
+        gspgcl.insets = new Insets(0, 0, 10, 0);
+        gSettingsPaddingPanel.add(gSettingsLabel, gspgcl);
         
+        GridBagConstraints gspgc = new GridBagConstraints();
+        gspgc.fill = GridBagConstraints.HORIZONTAL;
+        gspgc.weightx = 0.1;
+        gspgc.gridy = 1;
+        gSettingsPaddingPanel.add(gSettingsPanel, gspgc);
+        
+        graphLayoutComboBox = new JComboBox();
+        graphLayoutComboBox.addItem("auto");
+        graphLayoutComboBox.addItem("positive");
+        graphLayoutComboBox.addItem("negative");
+        graphLayoutComboBox.addItem("both");
+        graphClearButton = new JButton("Clear");
+        
+        // TODO: add action listeners
+        graphLayoutComboBox.addActionListener((ActionEvent e) -> {
+            switch ((String)graphLayoutComboBox.getSelectedItem())
+            {
+                case "auto":
+                    g.setGraphLayout(Graph.AUTO);
+                break;
+                
+                case "positive":
+                    g.setGraphLayout(Graph.POSITIVE);
+                break;
+                
+                case "negative":
+                    g.setGraphLayout(Graph.NEGATIVE);
+                break;
+                
+                case "both":
+                    g.setGraphLayout(Graph.BOTH);
+                break;
+            }
+        });
+        
+        graphClearButton.addActionListener((ActionEvent e) -> {
+            g.clear();
+        });
+        
+        JLabel graphLayoutLabel = new JLabel("Layout");
+        JLabel graphClearLabel = new JLabel("Clear graph");
+        
+        GroupLayout gLayout = new GroupLayout(gSettingsPanel);
+        gSettingsPanel.setLayout(gLayout);
+        gLayout.setAutoCreateGaps(true);
+        gLayout.setAutoCreateContainerGaps(true);
+        
+        gLayout.setHorizontalGroup(gLayout.createSequentialGroup()
+                .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(graphLayoutLabel)
+                        .addComponent(graphClearLabel)
+                )
+                .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(graphLayoutComboBox)
+                        .addComponent(graphClearButton)
+                )
+        );
+        
+        gLayout.setVerticalGroup(gLayout.createSequentialGroup()
+                .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(graphLayoutLabel)
+                        .addComponent(graphLayoutComboBox)
+                )
+                .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(graphClearLabel)
+                        .addComponent(graphClearButton)
+                )
+        );
         
         options.addTab("x-Axis", xPaddingPanel);
         options.addTab("y-Axis", yPaddingPanel);
-        //options.addTab("Settings", gSettings); NOT READY YET
+        options.addTab("Settings", gSettingsPaddingPanel);
         
         contentPanel.add(g, gC);
         contentPanel.add(options, optionsC);
@@ -543,6 +633,8 @@ class Graph extends JComponent implements ComponentListener
     int xOrigin;
     int yOrigin;
     
+    int layout = Graph.AUTO;
+    
     final static int PADDING = 20;
     final static BasicStroke axisStroke;
     final int DATA_HEIGHT; // Height of data display area, CONSTANT
@@ -550,6 +642,12 @@ class Graph extends JComponent implements ComponentListener
     
     ArrayList<Integer> xdata;
     ArrayList<Integer> ydata;
+    
+    // Layout constants
+    public final static int AUTO = 0;
+    public final static int POSITIVE = 1;
+    public final static int NEGATIVE = 2;
+    public final static int BOTH = 3;
     
     static
     {
@@ -565,92 +663,223 @@ class Graph extends JComponent implements ComponentListener
     }
     
     /**
+     * Constructor for class Graph. Builds a Graph out of two Axis.
+     * Uses layout as specified.
      * 
      * @param x
-     * @param y 
+     * @param y
+     * @param layout 
      */
-    public Graph(Axis x, Axis y)
+    public Graph (Axis x, Axis y, int layout)
     {
         this.x = x;
         this.y = y;
+        this.layout = layout;
     }
     
     /**
+     * Constructor for class Graph. Builds a Graph out of two Axis.
+     * Layout will be set to default: AUTO.
      * 
+     * @param x X Axis
+     * @param y Y Axis
+     */
+    public Graph(Axis x, Axis y)
+    {
+        this(x, y, Graph.AUTO);
+    }
+    
+    /**
+     * Constructor for Graph. Axis will be named "x Axis" and "y Axis".
+     * Unit will be set to default: "1".
+     * Layout will be set to default: AUTO.
      */
     public Graph()
     {
         this(new Axis("x Axis", "1", "1"), new Axis("y Axis", "1", "1"));
     }
     
+    /**
+     * Renders graph (axis, labels and data).
+     * 
+     * @param g 
+     */
     @Override
     public synchronized void paintComponent(Graphics g)
     {
-        xOrigin = PADDING;
-        yOrigin = this.getHeight()-PADDING;
+        int axisLayout = this.layout;
+        
+        // If layout auto, then check ydata
+        if (layout == Graph.AUTO || (layout != Graph.POSITIVE && layout != Graph.NEGATIVE && layout != Graph.BOTH))
+        {
+            // Check if contains negative / is all positive
+            boolean hasNegative = false;
+            for (int i = 0; i < ydata.size(); i++)
+            {
+                if (ydata.get(i) < 0)
+                {
+                    hasNegative = true;
+                    break;
+                }
+            }
+            
+            // Check to see if all negative
+            if (hasNegative)
+            {
+                boolean hasPositive = false;
+                for (int i = 0; i < ydata.size(); i++)
+                {
+                    if (ydata.get(i) > 0)
+                    {
+                        hasPositive = true;
+                        break;
+                    }
+                }
+                
+                if (hasPositive)
+                {
+                    axisLayout = Graph.BOTH;
+                }
+                else
+                {
+                    axisLayout = Graph.NEGATIVE;
+                }
+            }
+            else
+            {
+                axisLayout = Graph.POSITIVE;
+            }
+        }
         
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(Color.white);
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-        
+
         final AffineTransform normalTransform = g2d.getTransform();
         
-        // Draw axis
-        g2d.setColor(Color.black);
-        g2d.setStroke(axisStroke);
-        g2d.drawLine(xOrigin, yOrigin, PADDING, PADDING); // yAxis
-        g2d.drawLine(xOrigin, yOrigin, this.getWidth()-PADDING, yOrigin); // xAxis
-        // xAxis cap
-        g2d.drawLine(xOrigin-6, PADDING+8, xOrigin, PADDING);
-        g2d.drawLine(xOrigin, PADDING, xOrigin+6, PADDING+8);
-        // yAxis cap
-        g2d.drawLine(this.getWidth()-PADDING-8, yOrigin+6, this.getWidth()-PADDING, yOrigin);
-        g2d.drawLine(this.getWidth()-PADDING-8, yOrigin-6, this.getWidth()-PADDING, yOrigin);
-        // xAxis label
-        g2d.drawString(x.getName(), (this.getWidth()-2*PADDING)/2, (this.getHeight()-PADDING/2)+5);
-        // xAxis unit
-        g2d.drawString(x.getUnit(), (this.getWidth()-2*PADDING),(this.getHeight()-PADDING/2)+5);
-        // yAxis unit
-        g2d.rotate(Math.PI/2);
-        g2d.drawString(y.getUnit(), (1.5f*PADDING), -(PADDING/2-5));
-        //g2d.drawString(y.getUnit(), this.getWidth()/2, this.getHeight()/2);
-        // yAxis label
-        g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
-        g2d.setTransform(normalTransform);
+        switch (axisLayout)
+        {   
+            case Graph.POSITIVE:
+                xOrigin = PADDING;
+                yOrigin = this.getHeight()-PADDING;
+
+                // Draw axis
+                g2d.setColor(Color.black);
+                g2d.setStroke(axisStroke);
+                g2d.drawLine(xOrigin, yOrigin, xOrigin, PADDING); // yAxis
+                g2d.drawLine(xOrigin, yOrigin, this.getWidth()-PADDING, yOrigin); // xAxis
+                // xAxis cap
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin+6, this.getWidth()-PADDING, yOrigin);
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin-6, this.getWidth()-PADDING, yOrigin);
+                // yAxis cap
+                g2d.drawLine(xOrigin-6, PADDING+8, xOrigin, PADDING);
+                g2d.drawLine(xOrigin, PADDING, xOrigin+6, PADDING+8);
+                // xAxis label
+                g2d.drawString(x.getName(), (this.getWidth()-2*PADDING)/2, (this.getHeight()-PADDING/2)+5);
+                // xAxis unit
+                g2d.drawString(x.getUnit(), (this.getWidth()-2*PADDING),(this.getHeight()-PADDING/2)+5);
+                // yAxis unit
+                g2d.rotate(Math.PI/2);
+                g2d.drawString(y.getUnit(), (1.5f*PADDING), -(PADDING/2-5));
+                //g2d.drawString(y.getUnit(), this.getWidth()/2, this.getHeight()/2);
+                // yAxis label
+                g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
+                g2d.setTransform(normalTransform);
+            break;
+            
+            case Graph.NEGATIVE:
+                xOrigin = PADDING;
+                yOrigin = PADDING;
+
+                // Draw axis
+                g2d.setColor(Color.black);
+                g2d.setStroke(axisStroke);
+                g2d.drawLine(xOrigin, yOrigin, xOrigin, this.getHeight()-PADDING); // yAxis
+                g2d.drawLine(xOrigin, yOrigin, this.getWidth()-PADDING, yOrigin); // xAxis
+                // xAxis cap
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin+6, this.getWidth()-PADDING, yOrigin);
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin-6, this.getWidth()-PADDING, yOrigin);
+                // yAxis cap
+                g2d.drawLine(xOrigin-6, this.getHeight()-PADDING-8, xOrigin, this.getHeight()-PADDING);
+                g2d.drawLine(xOrigin, this.getHeight()-PADDING, xOrigin+6, this.getHeight()-PADDING-8);
+                // xAxis label
+                g2d.drawString(x.getName(), (this.getWidth()-2*PADDING)/2, (PADDING/2)+5);
+                // xAxis unit
+                g2d.drawString(x.getUnit(), (this.getWidth()-2*PADDING),(PADDING/2)+5);
+                // yAxis unit
+                g2d.rotate(Math.PI/2);
+                g2d.drawString(y.getUnit(), (this.getHeight() - 2.0f*PADDING), -(PADDING/2-5));
+                //g2d.drawString(y.getUnit(), this.getWidth()/2, this.getHeight()/2);
+                // yAxis label
+                g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
+                g2d.setTransform(normalTransform);
+            break;
+            
+            case Graph.BOTH:
+                xOrigin = PADDING;
+                yOrigin = this.getHeight()/2;
+
+                // Draw axis
+                g2d.setColor(Color.black);
+                g2d.setStroke(axisStroke);
+                g2d.drawLine(xOrigin, PADDING, xOrigin, this.getHeight()-PADDING); // yAxis
+                g2d.drawLine(xOrigin, yOrigin, this.getWidth()-PADDING, yOrigin); // xAxis
+                // xAxis cap
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin+6, this.getWidth()-PADDING, yOrigin);
+                g2d.drawLine(this.getWidth()-PADDING-8, yOrigin-6, this.getWidth()-PADDING, yOrigin);
+                // yAxis cap
+                g2d.drawLine(xOrigin-6, PADDING+8, xOrigin, PADDING); // Top
+                g2d.drawLine(xOrigin, PADDING, xOrigin+6, PADDING+8); 
+                g2d.drawLine(xOrigin-6, this.getHeight()-PADDING-8, xOrigin, this.getHeight()-PADDING); // Bottom
+                g2d.drawLine(xOrigin, this.getHeight()-PADDING, xOrigin+6, this.getHeight()-PADDING-8);
+                // xAxis label
+                g2d.drawString(x.getName(), (this.getWidth()-2*PADDING)/2, (this.getHeight()/2)+(PADDING/2)+5);
+                // xAxis unit
+                g2d.drawString(x.getUnit(), (this.getWidth()-2*PADDING),(this.getHeight()/2)+(PADDING/2)+5);
+                // yAxis unit
+                g2d.rotate(Math.PI/2);
+                g2d.drawString(y.getUnit(), (this.getHeight() - 2.0f*PADDING), -(PADDING/2-5));
+                //g2d.drawString(y.getUnit(), this.getWidth()/2, this.getHeight()/2);
+                // yAxis label
+                g2d.drawString(y.getName(), (this.getHeight()-2*PADDING)/2, -(PADDING/2-5));
+                g2d.setTransform(normalTransform);
+            break;
+        }
         
-        g2d.setColor(Color.red);
-        g2d.fillRect(PADDING + 2, PADDING, data_width, DATA_HEIGHT);
-        g2d.setColor(Color.blue);
-        
-        // Check if all datapoints fit into the graph
-        if (xdata.get(xdata.size() - 1) - xdata.get(0) > data_width) // True if they dont
+        // Only render graphline if data available same for all layouts
+        if (xdata.size() > 0)
         {
-            for (int i = 0; i < xdata.size(); i++)
+            // Check if all datapoints fit into the graph
+            if (xdata.get(xdata.size() - 1) - xdata.get(0) > data_width) // True if they dont
             {
-                if (xdata.get(xdata.size() - 1) - xdata.get(i) <= data_width)
+                for (int i = 0; i < xdata.size(); i++)
                 {
-                    break;
-                }
-                else
-                {
-                    xdata.remove(0);
-                    ydata.remove(0);
-                    i--;
+                    if (xdata.get(xdata.size() - 1) - xdata.get(i) <= data_width)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        xdata.remove(0);
+                        ydata.remove(0);
+                        i--;
+                    }
                 }
             }
+
+            // Convert x and y values to graphics coordinates
+            int dxdata[] = new int[xdata.size()];
+            int dydata[] = new int[ydata.size()];
+
+            for (int i = 0; i < xdata.size(); i++)
+            {
+                dxdata[i] = xOrigin + xdata.get(i) - xdata.get(0);
+                dydata[i] = yOrigin - ydata.get(i);
+            }
+
+            g2d.setColor(Color.blue);
+            g2d.drawPolyline(dxdata, dydata, xdata.size());
         }
-        
-        // Convert x values to graphics coordinates
-        int dxdata[] = new int[xdata.size()];
-        int dydata[] = new int[ydata.size()];
-        
-        for (int i = 0; i < xdata.size(); i++)
-        {
-            dxdata[i] = xOrigin + xdata.get(i) - xdata.get(0);
-            dydata[i] = yOrigin - ydata.get(i);
-        }
-        
-        g2d.drawPolyline(dxdata, dydata, xdata.size());
     }
     
     /**
@@ -661,11 +890,20 @@ class Graph extends JComponent implements ComponentListener
      */
     public synchronized void put(int x, int y)
     {
-        xdata.add(x);
-        ydata.add(y);
-        this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
+        // Check range of y against selected layout
+        if ((layout == Graph.POSITIVE && y >= 0) || (layout == Graph.NEGATIVE && y <= 0) || layout == Graph.BOTH || layout == Graph.AUTO)
+        {
+            xdata.add(x);
+            ydata.add(y);
+            this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
+        }
     }
     
+    /**
+     * Setter for x Axis name.
+     * 
+     * @param name Name of axis (to be displayed on graph).
+     */
     public void setXAxisName(String name)
     {
         if (name.strip().equals(""))
@@ -676,11 +914,21 @@ class Graph extends JComponent implements ComponentListener
         this.repaint();
     }
     
+    /**
+     * Getter for x Axis name.
+     * 
+     * @return 
+     */
     public String getXAxisName()
     {
         return x.getName();
     }
     
+    /**
+     * Setter for y Axis name.
+     * 
+     * @param name Name of Axis (to be displayed on graph).
+     */
     public void setYAxisName(String name)
     {
         if (name.strip().equals(""))
@@ -691,11 +939,21 @@ class Graph extends JComponent implements ComponentListener
         this.repaint();
     }
     
+    /**
+     * Getter of y Axis name.
+     * 
+     * @return 
+     */
     public String getYAxisName()
     {
         return y.getName();
     }
     
+    /**
+     * Setter of x Axis unit name.
+     * 
+     * @param name Unit name (to be displayed on graph).
+     */
     public void setXUnitName(String name)
     {
         if (name.strip().equals(""))
@@ -706,6 +964,11 @@ class Graph extends JComponent implements ComponentListener
         this.repaint();
     }
     
+    /**
+     * Setter of y Axis unit name.
+     * 
+     * @param name Unit name (to be displayed on graph).
+     */
     public void setYUnitName(String name)
     {
         if (name.strip().equals(""))
@@ -716,11 +979,21 @@ class Graph extends JComponent implements ComponentListener
         this.repaint();
     }
     
+    /**
+     * Getter of x Axis unit name.
+     * 
+     * @return 
+     */
     public String getXAxisUnit()
     {
         return x.getUnit();
     }
     
+    /**
+     * Getter of y Axis unit name.
+     * 
+     * @return 
+     */
     public String getYAxisUnit()
     {
         return y.getUnit();
@@ -750,6 +1023,32 @@ class Graph extends JComponent implements ComponentListener
     {
         
     }
+
+    /**
+     * Clears graph data
+     */
+    void clear()
+    {
+        xdata.clear();
+        ydata.clear();
+    }
+    
+    /**
+     * Sets the layout of the graph.
+     * 
+     * Possible layouts:
+     *    - Graph.AUTO Starts out in positive layout and switches based on data.
+     *    - Graph.POSITIVE Constantly in positive layout. Negative numbers not displayed.
+     *    - Graph.NEGATIVE Constantly in negative layout. Positive numbers not displayed.
+     *    - Graph.BOTH Constantly in both layout, all numbers will be displayed (smaller area).
+     * 
+     * @param layout
+     */
+    void setGraphLayout(int layout)
+    {
+        this.layout = layout;
+        this.repaint();
+    }
 }
 
 class Axis
@@ -759,10 +1058,11 @@ class Axis
     String unit;
     
     /**
+     * Constructor of class Axis.
      * 
-     * @param name
-     * @param unit
-     * @param variable 
+     * @param name Name of axis.
+     * @param unit Unit of axis.
+     * @param variable Processing variable name providing axis data.
      */
     public Axis(String name, String unit, String variable)
     {

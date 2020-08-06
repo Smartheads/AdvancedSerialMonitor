@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2020 Robert Hutter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package net.net16.smartcrew;
 
@@ -30,7 +41,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     
     final static long GRAPH_REFRESH_RATE = 33333333; // Refresh rate of graphs (nano seconds)
     
-    ArrayList<GraphPanel> graphs;
+    volatile ArrayList<GraphPanel> graphs;
     DefaultTableModel processingModel;
     DefaultTableModel dataPacketModel;
     
@@ -107,7 +118,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }
     
     /**
-     * 
+     * Adds a new GraphPanel to window.
      */
     private void addGraph()
     {
@@ -120,7 +131,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }
     
     /**
-     * 
+     * Refreshes the GraphComboBox.
      */
     private void refreshRemoveGraphComboBox()
     {
@@ -138,7 +149,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }
     
     /**
-     * 
+     * Refreshes the DeleteVariableComboBox.
      */
     private void updateDeleteVariableComboBox()
     {
@@ -150,6 +161,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }
     
     /**
+     * Returns the next available processing variable's name.
      * 
      * @return 
      */
@@ -1148,7 +1160,10 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             if (lastUpdate + 20000000 <= System.nanoTime())
             {
                 int x = (int) (System.currentTimeMillis() - xBase) / 20;
-                graphs.get(0).putData(x, (int) (Math.sin(x)*10) + 100);
+                for (GraphPanel g : graphs)
+                {
+                    g.putData(x, (int) ((Math.sin(x)*10) + 100));
+                }
                 lastUpdate = System.nanoTime();
             }
         }
