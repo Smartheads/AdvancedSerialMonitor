@@ -19,6 +19,7 @@ package net.net16.smartcrew;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.swing.ImageIcon;
@@ -39,14 +40,15 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     public final static int EXAMPLE_VALUE_COL = 4;
     public final static int FORMATTED_VALUE_COL = 5;
     
-    final static long GRAPH_REFRESH_RATE = 33333333; // Refresh rate of graphs (nano seconds)
-    
     volatile ArrayList<GraphPanel> graphs;
-    DefaultTableModel processingModel;
+    public DefaultTableModel processingModel;
     DefaultTableModel dataPacketModel;
     
     ArrayList<Byte> incommingPacket;
     int sizeofPacket = 3;
+    
+    long timerStartedAt = 0; // in millis
+    volatile long updateClockInterval = 0;
     
     Thread mainTimer;
     
@@ -122,8 +124,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
      */
     private void addGraph()
     {
-        GraphPanel gp = new GraphPanel(graphs.size());
-        gp.attachProcessingTableModel(processingModel);
+        GraphPanel gp = new GraphPanel(this, graphs.size());
         graphs.add(gp);
         contentPanel.add(gp, gp.constraints);
         contentPanel.revalidate();
@@ -247,6 +248,63 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     {
         
     }
+    
+    /**
+     * Returns x value calculated using timer.
+     * 
+     * @return 
+     */
+    public synchronized float getTimeXValue()
+    {
+        if (timerStartedAt == 0)
+        {
+            return 0.0f;
+        }
+        
+        switch (timeAxisUnitComboBox.getSelectedIndex())
+        {
+            case 0: // hrs
+                return (System.currentTimeMillis()-timerStartedAt) / 3600000.0f;
+            
+            case 1: // min
+                return (System.currentTimeMillis()-timerStartedAt) / 60000.0f;
+            
+            case 2: // sec
+                return (System.currentTimeMillis()-timerStartedAt) / 1000.0f;
+            
+            case 3: // ms
+                return System.currentTimeMillis()-timerStartedAt;
+              
+            default:
+                return 0.0f;
+        }
+    }
+    
+    /**
+     * Returns clock unit abbreviation as String.
+     * 
+     * @return 
+     */
+    public String getClockUnit()
+    {
+        switch (timeAxisUnitComboBox.getSelectedIndex())
+        {
+            case 0: // hrs
+                return "hrs";
+            
+            case 1: // min
+                return "min";
+            
+            case 2: // sec
+                return "s";
+            
+            case 3: // ms
+                return "ms";
+              
+            default:
+                return "";
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -266,12 +324,13 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         jSeparator3 = new javax.swing.JSeparator();
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        timeAxisUnitComboBox = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        timeAxisStartButton = new javax.swing.JButton();
+        timeAxisRestartButton = new javax.swing.JButton();
         removeGraphButton = new javax.swing.JButton();
         removeGraphComboBox = new javax.swing.JComboBox<>();
+        clockLabel = new javax.swing.JLabel();
         preferencesPanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -337,14 +396,29 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
         jLabel4.setText("Unit");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "hours (hrs)", "minutes (min)", "seconds (s)", "miliseconds (ms)", "microseconds (us)", "nanoseconds (ns)" }));
+        timeAxisUnitComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "hours (hrs)", "minutes (min)", "seconds (s)", "miliseconds (ms)" }));
+        timeAxisUnitComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timeAxisUnitComboBoxActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Current time (T+):");
 
-        jButton2.setText("Start");
+        timeAxisStartButton.setText("Start");
+        timeAxisStartButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timeAxisStartButtonActionPerformed(evt);
+            }
+        });
 
-        jButton3.setText("Restart");
-        jButton3.setEnabled(false);
+        timeAxisRestartButton.setText("Restart");
+        timeAxisRestartButton.setEnabled(false);
+        timeAxisRestartButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timeAxisRestartButtonActionPerformed(evt);
+            }
+        });
 
         removeGraphButton.setText("Remove");
         removeGraphButton.addActionListener(new java.awt.event.ActionListener() {
@@ -386,13 +460,16 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                     .addGroup(toolsPanelLayout.createSequentialGroup()
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(timeAxisUnitComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2)
+                        .addComponent(timeAxisStartButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3))
-                    .addComponent(jLabel5))
-                .addContainerGap(155, Short.MAX_VALUE))
+                        .addComponent(timeAxisRestartButton))
+                    .addGroup(toolsPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(clockLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap(161, Short.MAX_VALUE))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -415,12 +492,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel4)
-                                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jButton2)
-                                    .addComponent(jButton3))
+                                    .addComponent(timeAxisUnitComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(timeAxisStartButton)
+                                    .addComponent(timeAxisRestartButton))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel5)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(clockLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(0, 6, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -1095,9 +1174,54 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         this.setAlwaysOnTop(alwaysOnTopMenuItem.isSelected());
     }//GEN-LAST:event_alwaysOnTopMenuItemActionPerformed
 
+    private void timeAxisStartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisStartButtonActionPerformed
+        // TODO add your handling code here:
+        timerStartedAt = System.currentTimeMillis();
+        timeAxisRestartButton.setEnabled(true);
+        timeAxisStartButton.setEnabled(false);
+    }//GEN-LAST:event_timeAxisStartButtonActionPerformed
+
+    private void timeAxisUnitComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisUnitComboBoxActionPerformed
+        // TODO add your handling code here:
+        switch (timeAxisUnitComboBox.getSelectedIndex())
+        {
+            case 0: // hrs
+                updateClockInterval = 36000;
+            break;
+            
+            case 1: // min
+                updateClockInterval = 600;
+            break;
+            
+            case 2: // sec
+                updateClockInterval = 100;
+            break;
+            
+            case 3: // ms
+                updateClockInterval = 1;
+            break;
+        }
+        
+        for (GraphPanel gp : graphs)
+        {
+            gp.updateTimeAxisLabel();
+            gp.clearData();
+        }
+    }//GEN-LAST:event_timeAxisUnitComboBoxActionPerformed
+
+    private void timeAxisRestartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisRestartButtonActionPerformed
+        // TODO add your handling code here:
+        timerStartedAt = System.currentTimeMillis();
+        for (GraphPanel gp : graphs)
+        {
+            gp.clearData();
+        }
+    }//GEN-LAST:event_timeAxisRestartButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem alwaysOnTopMenuItem;
     private javax.swing.JButton bottomAddGraphButton;
+    private volatile javax.swing.JLabel clockLabel;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JScrollPane contentScrollPane;
     private javax.swing.JTextField customValueDelimiterTextField;
@@ -1111,9 +1235,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem fileMenuCloseItem;
     private javax.swing.JPanel footerPanel;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1143,6 +1264,9 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private javax.swing.JPanel tableHeaderPanel;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JScrollPane tableScrollPane;
+    private javax.swing.JButton timeAxisRestartButton;
+    private javax.swing.JButton timeAxisStartButton;
+    private volatile javax.swing.JComboBox<String> timeAxisUnitComboBox;
     private javax.swing.JButton toggleTableButton;
     private javax.swing.JPanel toolsPanel;
     private javax.swing.JButton topAddGraphButton;
@@ -1152,19 +1276,48 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
     @Override
     public void run() {
-        long xBase = System.currentTimeMillis();
         long lastUpdate = 0;
+        long lastClockUpdate = 0;
+        DecimalFormat df = new DecimalFormat("0.00");
         for (;;)
         {
             // DEMO
-            if (lastUpdate + 20000000 <= System.nanoTime())
+            if (lastUpdate + 10 <= System.currentTimeMillis())
             {
-                int x = (int) (System.currentTimeMillis() - xBase) / 20;
-                for (GraphPanel g : graphs)
+                if ((this.getTimeXValue()*10.0f) != 0)
                 {
-                    g.putData(x, (int) ((Math.sin(x)*10) + 100));
+                    for (GraphPanel g : graphs)
+                    {
+                        g.putData((int) ((Math.sin(this.getTimeXValue()/10)*10)));
+                    }
+                    lastUpdate = System.currentTimeMillis();
                 }
-                lastUpdate = System.nanoTime();
+            }
+            
+            // Update clock
+            if (lastClockUpdate + updateClockInterval <= System.currentTimeMillis())
+            {
+                if (timerStartedAt != 0)
+                {
+                    switch (timeAxisUnitComboBox.getSelectedIndex())
+                    {
+                        case 0: // hrs
+                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                        break;
+
+                        case 1: // min
+                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                        break;
+
+                        case 2: // sec
+                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                        break;
+
+                        case 3: // ms
+                            clockLabel.setText(Long.toString(System.currentTimeMillis() - timerStartedAt)+" "+this.getClockUnit());
+                        break;
+                    }
+                }
             }
         }
     }

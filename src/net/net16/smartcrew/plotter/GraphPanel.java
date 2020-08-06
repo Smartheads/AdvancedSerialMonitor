@@ -76,6 +76,7 @@ public class GraphPanel extends JPanel implements ComponentListener
     JComboBox graphScaleComboBox;
     public GridBagConstraints constraints;
     DefaultTableModel processingModel;
+    GraphPlotter graphPlotter;
     
     final public static int GRAPH_WIDTH = 400;
     final public static int GRAPH_HEIGHT = 200;
@@ -84,9 +85,11 @@ public class GraphPanel extends JPanel implements ComponentListener
         super.addComponentListener(this);
     }
     
-    public GraphPanel(int gridy)
+    public GraphPanel(GraphPlotter graphPlotter, int gridy)
     {
         super(new BorderLayout());
+        
+        this.graphPlotter = graphPlotter;
         
         constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -494,6 +497,10 @@ public class GraphPanel extends JPanel implements ComponentListener
         contentPanel.add(g, gC);
         contentPanel.add(options, optionsC);
         
+        this.processingModel = graphPlotter.processingModel;
+        updateXAxisComboBox();
+        updateYAxisComboBox();
+        
         super.add(contentPanel, BorderLayout.PAGE_END);
     }
     
@@ -506,7 +513,7 @@ public class GraphPanel extends JPanel implements ComponentListener
        updateYAxisComboBox();
     }
     
-    void updateXAxisComboBox()
+    final void updateXAxisComboBox()
     {
         String selected = (String) xAxisComboBox.getSelectedItem();
         int selectedIndex = -1;
@@ -527,7 +534,7 @@ public class GraphPanel extends JPanel implements ComponentListener
         }
     }
     
-    void updateYAxisComboBox()
+    final void updateYAxisComboBox()
     {
         String selected = (String) yAxisComboBox.getSelectedItem();
         int selectedIndex = -1;
@@ -601,6 +608,8 @@ public class GraphPanel extends JPanel implements ComponentListener
         {
             xUnitTextField.setEnabled(false);
             xAxisComboBox.setEnabled(false);
+            
+            updateTimeAxisLabel();
         }
         else
         {
@@ -615,11 +624,28 @@ public class GraphPanel extends JPanel implements ComponentListener
         {
             yUnitTextField.setEnabled(false);
             yAxisComboBox.setEnabled(false);
+            
+            updateTimeAxisLabel();
         }
         else
         {
             yUnitTextField.setEnabled(true);
             yAxisComboBox.setEnabled(true);
+        }
+    }
+    
+    public void updateTimeAxisLabel()
+    {
+        if (xUseTimeAxisCheckBox.isSelected())
+        {
+            g.setXUnitName(graphPlotter.getClockUnit());
+            this.xUnitTextField.setText(graphPlotter.getClockUnit());
+        }
+        
+        if (yUseTimeAxisCheckBox.isSelected())
+        {
+            g.setYUnitName(graphPlotter.getClockUnit());
+            this.yUnitTextField.setText(graphPlotter.getClockUnit());
         }
     }
     
@@ -653,17 +679,6 @@ public class GraphPanel extends JPanel implements ComponentListener
     }
     
     /**
-     * 
-     * @param m 
-     */
-    public void attachProcessingTableModel(DefaultTableModel m)
-    {
-        this.processingModel = m;
-        updateXAxisComboBox();
-        updateYAxisComboBox();
-    }
-    
-    /**
      *  Puts data on graph
      * 
      * @param x
@@ -674,9 +689,35 @@ public class GraphPanel extends JPanel implements ComponentListener
         g.put(x, y);
     }
     
+    /**
+     * Puts data on graph. Y value taken from clock.
+     * 
+     * @param y 
+     */
+    public synchronized void putData(int y)
+    {
+        if (xUseTimeAxisCheckBox.isSelected())
+        {
+            g.put((int)graphPlotter.getTimeXValue(), y);
+        }
+    }
+    
+    /**
+     * Clears data from graph.
+     */
+    public void clearData()
+    {
+        g.clear();
+    }
+    
     public synchronized void updateGraphics()
     {
         g.repaint();
+    }
+    
+    public synchronized int getTimeAxisX()
+    {
+        return (int) graphPlotter.getTimeXValue();
     }
 
     @Override
@@ -826,15 +867,18 @@ class Graph extends JComponent implements ComponentListener
                 if (hasPositive)
                 {
                     axisLayout = Graph.BOTH;
+                    this.repaint();
                 }
                 else
                 {
                     axisLayout = Graph.NEGATIVE;
+                    this.repaint();
                 }
             }
             else
             {
                 axisLayout = Graph.POSITIVE;
+                this.repaint();
             }
         }
         
