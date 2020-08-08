@@ -120,10 +120,6 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                 "startStop"
         );
         console.getActionMap().put("startStop", startStopAction);
-        
-        java.awt.EventQueue.invokeLater(() -> {
-            gp = new GraphPlotter();
-        });
     }
     
     @Override
@@ -137,7 +133,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         String data;
         
         // Update graphplotter
-        if (gp.isVisible())
+        if (gp != null)
         { 
             gp.SerialEvent(event);
         }
@@ -318,6 +314,15 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
             console.append(data);
         }
     }
+    
+    /**
+     * Method to be called when GraphPlotter is closed.
+     * Prepare GraphPlotter for garbage collection. 
+     */
+    public void graphPlotterClosed()
+    {
+        this.gp = null;
+    }
  
     /**
      * This method is called from within the constructor to initialize the form.
@@ -411,6 +416,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         exitMenuItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         alwaysOnTopCheckBox = new javax.swing.JCheckBoxMenuItem();
+        shrinkMenuItem = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         about.setTitle("About Advanced Serial Monitor");
@@ -1142,6 +1148,14 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         });
         jMenu2.add(alwaysOnTopCheckBox);
 
+        shrinkMenuItem.setText("Shrink");
+        shrinkMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                shrinkMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(shrinkMenuItem);
+
         jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/line_graph.png"))); // NOI18N
         jMenuItem1.setText("Open Graph Plotter");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -1452,8 +1466,18 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         // TODO add your handling code here:
-        gp.startStopGraphPlotter(true);
+        if (gp == null)
+        {
+            java.awt.EventQueue.invokeLater(() -> {
+                gp = new GraphPlotter(this);
+            });
+        }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void shrinkMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shrinkMenuItemActionPerformed
+        // TODO add your handling code here:
+        this.setSize(this.getMinimumSize());
+    }//GEN-LAST:event_shrinkMenuItemActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1779,6 +1803,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     private javax.swing.JPanel sendDataPanel;
     private javax.swing.JPanel sendDataSendPanel;
     private javax.swing.JButton sendFileButton;
+    private javax.swing.JMenuItem shrinkMenuItem;
     private javax.swing.JToggleButton startStop;
     private javax.swing.JLabel streamFileJl;
     private javax.swing.JCheckBox streamOverwrite;

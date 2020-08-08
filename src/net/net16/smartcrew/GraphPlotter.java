@@ -47,10 +47,12 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     ArrayList<Byte> incommingPacket;
     int sizeofPacket = 3;
     
-    long timerStartedAt = 0; // in millis
-    volatile long updateClockInterval = 0;
+    volatile long timerStartedAt = 0; // in millis
+    long timerStoppedAt = 0;
+    volatile long updateClockInterval = 10000;
     
-    Thread mainTimer;
+    Thread clockThread;
+    private final AdvancedSerialMonitor asm;
     
     {
         incommingPacket = new ArrayList<>();
@@ -58,18 +60,22 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
     /**
      * Creates new form SerialPlotter
+     * @param asm
      */
-    public GraphPlotter() {
+    public GraphPlotter(AdvancedSerialMonitor asm) {
         initComponents();
         
-        super.addWindowListener( new WindowAdapter()
+        super.addWindowListener(new WindowAdapter()
         {
             @Override
             public void windowClosing(WindowEvent e)
             {
-                GraphPlotter.this.startStopGraphPlotter(false);
+                GraphPlotter.this.dispose();
+                GraphPlotter.this.asm.graphPlotterClosed();
             }
         });
+        
+        this.asm = asm;
         
         processingModel = (DefaultTableModel) processingTable.getModel();
         dataPacketModel = (DefaultTableModel) dataPacketModelTable.getModel();
@@ -92,31 +98,13 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         
         customValueDelimiterTextField.setVisible(false);
         
+        contentScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
         graphs = new ArrayList<>();
-    }
-    
-    /**
-     * Start/stop graph plotter
-     * 
-     * @param state true - start, false - stop
-     */
-    public void startStopGraphPlotter (boolean state)
-    {
-        if (state)
-        {
-            addGraph();
-            mainTimer = new Thread(this, "graphplottertimer");
-            mainTimer.start();
-            mainTimer.setPriority(Thread.MAX_PRIORITY);
-            this.setLocation(this.getX() + 50, this.getY() + 50);
-            this.setVisible(true);
-        }
-        else
-        {
-            mainTimer.interrupt();
-            graphs.clear();
-            this.setVisible(false);
-        }
+        
+        addGraph();
+        super.setLocation(asm.getX() + 50, asm.getY() + 50);
+        super.setVisible(true);
     }
     
     /**
@@ -331,6 +319,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         removeGraphButton = new javax.swing.JButton();
         removeGraphComboBox = new javax.swing.JComboBox<>();
         clockLabel = new javax.swing.JLabel();
+        timeAxisStopButton = new javax.swing.JButton();
         preferencesPanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -369,6 +358,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         fileMenuCloseItem = new javax.swing.JMenuItem();
         windowMenu = new javax.swing.JMenu();
         alwaysOnTopMenuItem = new javax.swing.JCheckBoxMenuItem();
+        shrinkMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Serial Graph Plotter");
@@ -438,6 +428,16 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             }
         });
 
+        clockLabel.setText("0.00 hrs");
+
+        timeAxisStopButton.setText("Stop");
+        timeAxisStopButton.setEnabled(false);
+        timeAxisStopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timeAxisStopButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout toolsPanelLayout = new javax.swing.GroupLayout(toolsPanel);
         toolsPanel.setLayout(toolsPanelLayout);
         toolsPanelLayout.setHorizontalGroup(
@@ -456,6 +456,10 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(toolsPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(clockLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(toolsPanelLayout.createSequentialGroup()
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -464,12 +468,10 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(timeAxisStartButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(timeAxisRestartButton))
-                    .addGroup(toolsPanelLayout.createSequentialGroup()
-                        .addComponent(jLabel5)
+                        .addComponent(timeAxisStopButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(clockLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(161, Short.MAX_VALUE))
+                        .addComponent(timeAxisRestartButton)))
+                .addGap(109, 109, 109))
         );
         toolsPanelLayout.setVerticalGroup(
             toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -494,7 +496,8 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                                     .addComponent(jLabel4)
                                     .addComponent(timeAxisUnitComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(timeAxisStartButton)
-                                    .addComponent(timeAxisRestartButton))
+                                    .addComponent(timeAxisRestartButton)
+                                    .addComponent(timeAxisStopButton))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -602,7 +605,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dataPacketPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137, Short.MAX_VALUE)
                 .addComponent(packetLengthLabel)
                 .addContainerGap())
         );
@@ -669,7 +672,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 .addComponent(toggleTableButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1))
-            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 726, Short.MAX_VALUE)
+            .addComponent(dataProcessingTableLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 751, Short.MAX_VALUE)
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -816,7 +819,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
         getContentPane().add(processingTablePanel, gridBagConstraints);
 
-        contentScrollPane.setBorder(null);
+        contentScrollPane.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 51)));
 
         contentPanel.setLayout(new java.awt.GridBagLayout());
         contentScrollPane.setViewportView(contentPanel);
@@ -825,8 +828,9 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
         gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.weighty = 0.2;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
         getContentPane().add(contentScrollPane, gridBagConstraints);
 
@@ -844,7 +848,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             .addGroup(footerPanelLayout.createSequentialGroup()
                 .addComponent(bottomAddGraphButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 641, Short.MAX_VALUE))
+                .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 666, Short.MAX_VALUE))
         );
         footerPanelLayout.setVerticalGroup(
             footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -885,6 +889,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             }
         });
         windowMenu.add(alwaysOnTopMenuItem);
+
+        shrinkMenuItem.setText("Shrink");
+        shrinkMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                shrinkMenuItemActionPerformed(evt);
+            }
+        });
+        windowMenu.add(shrinkMenuItem);
 
         menuBar.add(windowMenu);
 
@@ -1176,9 +1188,22 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
     private void timeAxisStartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisStartButtonActionPerformed
         // TODO add your handling code here:
-        timerStartedAt = System.currentTimeMillis();
+        if (timerStartedAt == 0)
+        {
+            timerStartedAt = System.currentTimeMillis();
+        }
+        else
+        {
+            timerStartedAt += System.currentTimeMillis() - timerStoppedAt;
+        }
+        
+        clockThread = new Thread(this, "graphplotterclock");
+        clockThread.start();
+        clockThread.setPriority(Thread.MAX_PRIORITY);
+        
         timeAxisRestartButton.setEnabled(true);
         timeAxisStartButton.setEnabled(false);
+        timeAxisStopButton.setEnabled(true);
     }//GEN-LAST:event_timeAxisStartButtonActionPerformed
 
     private void timeAxisUnitComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisUnitComboBoxActionPerformed
@@ -1186,7 +1211,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         switch (timeAxisUnitComboBox.getSelectedIndex())
         {
             case 0: // hrs
-                updateClockInterval = 36000;
+                updateClockInterval = 600;
             break;
             
             case 1: // min
@@ -1198,13 +1223,12 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             break;
             
             case 3: // ms
-                updateClockInterval = 1;
+                updateClockInterval = 10;
             break;
         }
         
         for (GraphPanel gp : graphs)
         {
-            gp.updateTimeAxisLabel();
             gp.clearData();
         }
     }//GEN-LAST:event_timeAxisUnitComboBoxActionPerformed
@@ -1217,6 +1241,20 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             gp.clearData();
         }
     }//GEN-LAST:event_timeAxisRestartButtonActionPerformed
+
+    private void timeAxisStopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisStopButtonActionPerformed
+        // TODO add your handling code here:
+        timerStoppedAt = System.currentTimeMillis();
+        clockThread.interrupt();
+        timeAxisStartButton.setEnabled(true);
+        timeAxisRestartButton.setEnabled(false);
+        timeAxisStopButton.setEnabled(false);
+    }//GEN-LAST:event_timeAxisStopButtonActionPerformed
+
+    private void shrinkMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shrinkMenuItemActionPerformed
+        // TODO add your handling code here:
+        this.setSize(this.getMinimumSize());
+    }//GEN-LAST:event_shrinkMenuItemActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem alwaysOnTopMenuItem;
@@ -1261,12 +1299,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private javax.swing.JPanel processingTablePanel;
     private javax.swing.JButton removeGraphButton;
     private javax.swing.JComboBox<String> removeGraphComboBox;
+    private javax.swing.JMenuItem shrinkMenuItem;
     private javax.swing.JPanel tableHeaderPanel;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JScrollPane tableScrollPane;
     private javax.swing.JButton timeAxisRestartButton;
     private javax.swing.JButton timeAxisStartButton;
-    private volatile javax.swing.JComboBox<String> timeAxisUnitComboBox;
+    private javax.swing.JButton timeAxisStopButton;
+    public volatile javax.swing.JComboBox<String> timeAxisUnitComboBox;
     private javax.swing.JButton toggleTableButton;
     private javax.swing.JPanel toolsPanel;
     private javax.swing.JButton topAddGraphButton;
@@ -1275,49 +1315,38 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void run() {
-        long lastUpdate = 0;
-        long lastClockUpdate = 0;
+    public void run()
+    {
         DecimalFormat df = new DecimalFormat("0.00");
         for (;;)
         {
-            // DEMO
-            if (lastUpdate + 10 <= System.currentTimeMillis())
-            {
-                if ((this.getTimeXValue()*10.0f) != 0)
-                {
-                    for (GraphPanel g : graphs)
-                    {
-                        g.putData((int) ((Math.sin(this.getTimeXValue()/10)*10)));
-                    }
-                    lastUpdate = System.currentTimeMillis();
-                }
-            }
-            
             // Update clock
-            if (timerStartedAt != 0)
+            try
             {
-                if (lastClockUpdate + updateClockInterval <= System.currentTimeMillis())
-                {
-                    switch (timeAxisUnitComboBox.getSelectedIndex())
-                    {
-                        case 0: // hrs
-                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
-                        break;
+                Thread.sleep(updateClockInterval);
+            } 
+            catch (InterruptedException ex)
+            {
+                break;
+            }
 
-                        case 1: // min
-                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
-                        break;
+            switch (timeAxisUnitComboBox.getSelectedIndex())
+            {
+                case 0: // hrs
+                    clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                break;
 
-                        case 2: // sec
-                            clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
-                        break;
+                case 1: // min
+                    clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                break;
 
-                        case 3: // ms
-                            clockLabel.setText(Long.toString(System.currentTimeMillis() - timerStartedAt)+" "+this.getClockUnit());
-                        break;
-                    }
-                }
+                case 2: // sec
+                    clockLabel.setText(df.format(this.getTimeXValue())+" "+this.getClockUnit());
+                break;
+
+                case 3: // ms
+                    clockLabel.setText(Long.toString(System.currentTimeMillis() - timerStartedAt)+" "+this.getClockUnit());
+                break;
             }
         }
     }

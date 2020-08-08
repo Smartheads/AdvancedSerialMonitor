@@ -92,9 +92,10 @@ public class GraphPanel extends JPanel implements ComponentListener
         this.graphPlotter = graphPlotter;
         
         constraints = new GridBagConstraints();
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.anchor = GridBagConstraints.PAGE_START;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = 0.1;
+        constraints.weighty = 0.1;
         constraints.gridx = 0;
         constraints.gridy = gridy;
         constraints.insets = new Insets(0, 0, 10, 5);
@@ -108,8 +109,20 @@ public class GraphPanel extends JPanel implements ComponentListener
         
         hideShowButton = new JButton("Hide");
         hideShowButton.setMargin(new Insets(2, 14, 2, 14));
-        hideShowButton.addActionListener((ActionEvent e) -> {
-            hideShowButtonActionPerformed(e);    
+        hideShowButton.addActionListener((ActionEvent e) ->
+        {
+            if(hideShowButton.getText().equals("Show"))
+            {
+                // Show
+                contentPanel.setVisible(true);
+                hideShowButton.setText("Hide");
+            }
+            else
+            {
+                // Hide
+                contentPanel.setVisible(false);
+                hideShowButton.setText("Show");
+            }   
         });
         
         bC.gridx = 0;
@@ -202,7 +215,7 @@ public class GraphPanel extends JPanel implements ComponentListener
         xAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-                GraphPanel.this.xAxisComboBoxPopupMenuEventPerformed(e);
+                GraphPanel.this.updateXAxisComboBox();
             }
 
             @Override
@@ -214,16 +227,35 @@ public class GraphPanel extends JPanel implements ComponentListener
             }
         });
         
-        xVariableTextField.addActionListener((ActionEvent e) -> {
-            xVariableTextFieldActionPerformed(e);
+        xVariableTextField.addActionListener((ActionEvent e) ->
+        {
+            g.setXAxisName(xVariableTextField.getText());
         });
         
-        xUnitTextField.addActionListener((ActionEvent e) -> {
-            xUnitTextFieldActionPerformed(e);
+        xUnitTextField.addActionListener((ActionEvent e) ->
+        {
+            g.setXUnitName(xUnitTextField.getText());
         });
         
-        xUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
-            xUseTimeAxisCheckBoxActionPerformed(e);
+        xUseTimeAxisCheckBox.addActionListener((ActionEvent e) ->
+        {
+            if (xUseTimeAxisCheckBox.isSelected())
+            {
+                xUnitTextField.setEnabled(false);
+                xAxisComboBox.setEnabled(false);
+
+                updateTimeAxisLabel();
+            }
+            else
+            {
+                xUnitTextField.setEnabled(true);
+                xAxisComboBox.setEnabled(true);
+            }
+        });
+        
+        graphPlotter.timeAxisUnitComboBox.addActionListener((ActionEvent e) ->
+        {
+            updateTimeAxisLabel();
         });
         
         xAxisScaleComboBox = new JComboBox();
@@ -232,7 +264,8 @@ public class GraphPanel extends JPanel implements ComponentListener
         xAxisScaleComboBox.addItem("1:100");
         xAxisScaleComboBox.addItem("1:1000");
         
-        xAxisScaleComboBox.addActionListener((ActionEvent e) -> {
+        xAxisScaleComboBox.addActionListener((ActionEvent e) ->
+        {
             switch ((String)xAxisScaleComboBox.getSelectedItem())
             {
                 case "1:1":
@@ -327,7 +360,7 @@ public class GraphPanel extends JPanel implements ComponentListener
         yAxisComboBox.addPopupMenuListener( new PopupMenuListener () {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-                GraphPanel.this.yAxisComboBoxPopupMenuEventPerformed(e);
+                GraphPanel.this.updateYAxisComboBox();
             }
 
             @Override
@@ -339,12 +372,14 @@ public class GraphPanel extends JPanel implements ComponentListener
             }
         });
         
-        yVariableTextField.addActionListener((ActionEvent e) -> {
-            yVariableTextFieldActionPerformed(e);
+        yVariableTextField.addActionListener((ActionEvent e) ->
+        {
+            g.setYAxisName(xVariableTextField.getText());
         });
         
-        yUnitTextField.addActionListener((ActionEvent e) -> {
-            yUnitTextFieldActionPerformed(e);
+        yUnitTextField.addActionListener((ActionEvent e) ->
+        {
+            g.setYUnitName(yUnitTextField.getText());
         });
         
         yAxisScaleComboBox = new JComboBox();
@@ -356,7 +391,8 @@ public class GraphPanel extends JPanel implements ComponentListener
         yAxisScaleComboBox.addItem("1:50");
         yAxisScaleComboBox.addItem("1:100");
         
-        yAxisScaleComboBox.addActionListener((ActionEvent e) -> {
+        yAxisScaleComboBox.addActionListener((ActionEvent e) ->
+        {
             switch ((String)yAxisScaleComboBox.getSelectedItem())
             {
                 case "1:1":
@@ -460,7 +496,8 @@ public class GraphPanel extends JPanel implements ComponentListener
         
         graphClearButton = new JButton("Clear");
         
-        graphLayoutComboBox.addActionListener((ActionEvent e) -> {
+        graphLayoutComboBox.addActionListener((ActionEvent e) ->
+        {
             switch ((String)graphLayoutComboBox.getSelectedItem())
             {
                 case "auto":
@@ -481,7 +518,8 @@ public class GraphPanel extends JPanel implements ComponentListener
             }
         });
         
-        graphClearButton.addActionListener((ActionEvent e) -> {
+        graphClearButton.addActionListener((ActionEvent e) ->
+        {
             g.clear();
         });
         
@@ -579,68 +617,6 @@ public class GraphPanel extends JPanel implements ComponentListener
         if (selectedIndex >= 0)
         {
             yAxisComboBox.setSelectedIndex(selectedIndex);
-        }
-    }
-    
-    private void hideShowButtonActionPerformed(ActionEvent evt)
-    {
-        if(hideShowButton.getText().equals("Show"))
-        {
-            // Show
-            contentPanel.setVisible(true);
-            hideShowButton.setText("Hide");
-        }
-        else
-        {
-            // Hide
-            contentPanel.setVisible(false);
-            hideShowButton.setText("Show");
-        }
-    }
-    
-    private void xAxisComboBoxPopupMenuEventPerformed(PopupMenuEvent e)
-    {
-        updateXAxisComboBox();
-    }
-    
-    private void yAxisComboBoxPopupMenuEventPerformed(PopupMenuEvent e)
-    {
-        updateYAxisComboBox();
-    }
-    
-    private void xVariableTextFieldActionPerformed(ActionEvent e)
-    {
-        g.setXAxisName(xVariableTextField.getText());
-    }
-    
-    private void yVariableTextFieldActionPerformed(ActionEvent e)
-    {
-        g.setYAxisName(xVariableTextField.getText());
-    }
-    
-    private void xUnitTextFieldActionPerformed(ActionEvent e)
-    {
-        g.setXUnitName(xUnitTextField.getText());
-    }
-
-    private void yUnitTextFieldActionPerformed(ActionEvent e)
-    {
-        g.setYUnitName(yUnitTextField.getText());
-    }
-    
-    private void xUseTimeAxisCheckBoxActionPerformed(ActionEvent evt)
-    {
-        if (xUseTimeAxisCheckBox.isSelected())
-        {
-            xUnitTextField.setEnabled(false);
-            xAxisComboBox.setEnabled(false);
-            
-            updateTimeAxisLabel();
-        }
-        else
-        {
-            xUnitTextField.setEnabled(true);
-            xAxisComboBox.setEnabled(true);
         }
     }
     
@@ -875,18 +851,15 @@ class Graph extends JComponent implements ComponentListener
                 if (hasPositive)
                 {
                     axisLayout = Graph.BOTH;
-                    this.repaint();
                 }
                 else
                 {
                     axisLayout = Graph.NEGATIVE;
-                    this.repaint();
                 }
             }
             else
             {
                 axisLayout = Graph.POSITIVE;
-                this.repaint();
             }
         }
         
@@ -1135,7 +1108,14 @@ class Graph extends JComponent implements ComponentListener
     {
         xdata.add(x);
         ydata.add(y);
-        this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
+        if (layout == Graph.BOTH)
+        {
+            this.repaint();
+        }
+        else
+        {
+            this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
+        }
     }
     
     /**
