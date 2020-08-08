@@ -70,10 +70,10 @@ public class GraphPanel extends JPanel implements ComponentListener
     JComboBox yAxisComboBox;
     JTextField yVariableTextField;
     JTextField yUnitTextField;
-    JCheckBox yUseTimeAxisCheckBox;
     JComboBox graphLayoutComboBox;
     JButton graphClearButton;
-    JComboBox graphScaleComboBox;
+    JComboBox xAxisScaleComboBox;
+    JComboBox yAxisScaleComboBox;
     public GridBagConstraints constraints;
     DefaultTableModel processingModel;
     GraphPlotter graphPlotter;
@@ -226,9 +226,37 @@ public class GraphPanel extends JPanel implements ComponentListener
             xUseTimeAxisCheckBoxActionPerformed(e);
         });
         
+        xAxisScaleComboBox = new JComboBox();
+        xAxisScaleComboBox.addItem("1:1");
+        xAxisScaleComboBox.addItem("1:10");
+        xAxisScaleComboBox.addItem("1:100");
+        xAxisScaleComboBox.addItem("1:1000");
+        
+        xAxisScaleComboBox.addActionListener((ActionEvent e) -> {
+            switch ((String)xAxisScaleComboBox.getSelectedItem())
+            {
+                case "1:1":
+                    g.setXScale(1);
+                break;
+                
+                case "1:10":
+                    g.setXScale(10);    
+                break;
+                
+                case "1:100":
+                    g.setXScale(100);
+                break;
+                
+                case "1:1000":
+                    g.setXScale(1000);
+                break;
+            }
+        });
+        
         JLabel xVariableLabel = new JLabel("Variable");
         JLabel xLabelLabel = new JLabel("Label");
         JLabel xUnitLabel = new JLabel("Unit");
+        JLabel xAxisScaleLabel = new JLabel("Scale");
         
         GroupLayout xLayout = new GroupLayout(xPanel);
         xPanel.setLayout(xLayout);
@@ -239,11 +267,13 @@ public class GraphPanel extends JPanel implements ComponentListener
             .addGroup(xLayout.createSequentialGroup()
                 .addGroup(xLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(xVariableLabel)
+                .addComponent(xAxisScaleLabel)
                 .addComponent(xLabelLabel)
                 .addComponent(xUnitLabel)
                 )
                 .addGroup(xLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(xAxisComboBox)
+                .addComponent(xAxisScaleComboBox)
                 .addComponent(xVariableTextField)
                 .addComponent(xUnitTextField)
             ))
@@ -254,6 +284,10 @@ public class GraphPanel extends JPanel implements ComponentListener
                     .addGroup(xLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(xVariableLabel)
                     .addComponent(xAxisComboBox)
+                    )
+                    .addGroup(xLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(xAxisScaleLabel)
+                    .addComponent(xAxisScaleComboBox)
                     )
                     .addGroup(xLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(xLabelLabel)
@@ -287,8 +321,6 @@ public class GraphPanel extends JPanel implements ComponentListener
         yAxisComboBox = new JComboBox();
         yVariableTextField = new JTextField("y Axis");
         yUnitTextField = new JTextField("1");
-        yUseTimeAxisCheckBox = new JCheckBox();
-        yUseTimeAxisCheckBox.setText("Use time axis");
         
         yAxisComboBox.setPreferredSize(new Dimension(yAxisComboBox.getWidth(), 20));
         
@@ -315,13 +347,52 @@ public class GraphPanel extends JPanel implements ComponentListener
             yUnitTextFieldActionPerformed(e);
         });
         
-        yUseTimeAxisCheckBox.addActionListener((ActionEvent e) -> {
-            yUseTimeAxisCheckBoxActionPerformed(e);
+        yAxisScaleComboBox = new JComboBox();
+        yAxisScaleComboBox.addItem("auto");
+        yAxisScaleComboBox.addItem("1:1");
+        yAxisScaleComboBox.addItem("1:5");
+        yAxisScaleComboBox.addItem("1:10");
+        yAxisScaleComboBox.addItem("1:25");
+        yAxisScaleComboBox.addItem("1:50");
+        yAxisScaleComboBox.addItem("1:100");
+        
+        yAxisScaleComboBox.addActionListener((ActionEvent e) -> {
+            switch ((String)yAxisScaleComboBox.getSelectedItem())
+            {
+                case "1:1":
+                    g.setYScale(1);
+                break;
+                
+                case "1:5":
+                    g.setYScale(5);
+                break;
+                
+                case "1:10":
+                    g.setYScale(10);
+                break;
+                
+                case "1:25":
+                    g.setYScale(25);
+                break;
+                
+                case "1:50":
+                    g.setYScale(50);
+                break;
+                
+                case "1:100":
+                    g.setYScale(100);
+                break;
+                
+                default:
+                    g.setYScale(Graph.AUTO); // Auto
+                break;
+            }
         });
         
         JLabel yVariableLabel = new JLabel("Variable");
         JLabel yLabelLabel = new JLabel("Label");
         JLabel yUnitLabel = new JLabel("Unit");
+        JLabel yAxisScaleLabel = new JLabel("Scale");
         
         GroupLayout yLayout = new GroupLayout(yPanel);
         yPanel.setLayout(yLayout);
@@ -332,21 +403,26 @@ public class GraphPanel extends JPanel implements ComponentListener
             .addGroup(yLayout.createSequentialGroup()
                 .addGroup(yLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(yVariableLabel)
+                .addComponent(yAxisScaleLabel)
                 .addComponent(yLabelLabel)
                 .addComponent(yUnitLabel)
                 )
                 .addGroup(yLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(yAxisComboBox)
+                .addComponent(yAxisScaleComboBox)
                 .addComponent(yVariableTextField)
                 .addComponent(yUnitTextField)
             ))
-            .addComponent(yUseTimeAxisCheckBox)
         );
         
         yLayout.setVerticalGroup(yLayout.createSequentialGroup()
                     .addGroup(yLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(yVariableLabel)
                     .addComponent(yAxisComboBox)
+                    )
+                    .addGroup(yLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(yAxisScaleLabel)
+                    .addComponent(yAxisScaleComboBox)
                     )
                     .addGroup(yLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(yLabelLabel)
@@ -356,7 +432,6 @@ public class GraphPanel extends JPanel implements ComponentListener
                     .addComponent(yUnitLabel)
                     .addComponent(yUnitTextField)
                     )
-                    .addComponent(yUseTimeAxisCheckBox)
         );
         
         // gSettings
@@ -385,15 +460,6 @@ public class GraphPanel extends JPanel implements ComponentListener
         
         graphClearButton = new JButton("Clear");
         
-        graphScaleComboBox = new JComboBox();
-        graphScaleComboBox.addItem("auto");
-        graphScaleComboBox.addItem("1:1");
-        graphScaleComboBox.addItem("1:5");
-        graphScaleComboBox.addItem("1:10");
-        graphScaleComboBox.addItem("1:25");
-        graphScaleComboBox.addItem("1:50");
-        graphScaleComboBox.addItem("1:100");
-        
         graphLayoutComboBox.addActionListener((ActionEvent e) -> {
             switch ((String)graphLayoutComboBox.getSelectedItem())
             {
@@ -419,42 +485,8 @@ public class GraphPanel extends JPanel implements ComponentListener
             g.clear();
         });
         
-        graphScaleComboBox.addActionListener((ActionEvent e) -> {
-            switch ((String)graphScaleComboBox.getSelectedItem())
-            {
-                case "1:1":
-                    g.setScale(1);
-                break;
-                
-                case "1:5":
-                    g.setScale(5);
-                break;
-                
-                case "1:10":
-                    g.setScale(10);
-                break;
-                
-                case "1:25":
-                    g.setScale(25);
-                break;
-                
-                case "1:50":
-                    g.setScale(50);
-                break;
-                
-                case "1:100":
-                    g.setScale(100);
-                break;
-                
-                default:
-                    g.setScale(Graph.AUTO); // Auto
-                break;
-            }
-        });
-        
         JLabel graphLayoutLabel = new JLabel("Layout");
         JLabel graphClearLabel = new JLabel("Clear graph");
-        JLabel graphScaleLabel = new JLabel("Scale");
         
         GroupLayout gLayout = new GroupLayout(gSettingsPanel);
         gSettingsPanel.setLayout(gLayout);
@@ -464,12 +496,10 @@ public class GraphPanel extends JPanel implements ComponentListener
         gLayout.setHorizontalGroup(gLayout.createSequentialGroup()
                 .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addComponent(graphLayoutLabel)
-                        .addComponent(graphScaleLabel)
                         .addComponent(graphClearLabel)
                 )
                 .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addComponent(graphLayoutComboBox)
-                        .addComponent(graphScaleComboBox)
                         .addComponent(graphClearButton)
                 )
         );
@@ -479,10 +509,6 @@ public class GraphPanel extends JPanel implements ComponentListener
                         .addComponent(graphLayoutLabel)
                         .addComponent(graphLayoutComboBox)
                         
-                )
-                .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(graphScaleLabel)
-                        .addComponent(graphScaleComboBox)
                 )
                 .addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                         .addComponent(graphClearLabel)
@@ -618,34 +644,12 @@ public class GraphPanel extends JPanel implements ComponentListener
         }
     }
     
-    private void yUseTimeAxisCheckBoxActionPerformed(ActionEvent evt)
-    {
-        if (yUseTimeAxisCheckBox.isSelected())
-        {
-            yUnitTextField.setEnabled(false);
-            yAxisComboBox.setEnabled(false);
-            
-            updateTimeAxisLabel();
-        }
-        else
-        {
-            yUnitTextField.setEnabled(true);
-            yAxisComboBox.setEnabled(true);
-        }
-    }
-    
     public void updateTimeAxisLabel()
     {
         if (xUseTimeAxisCheckBox.isSelected())
         {
             g.setXUnitName(graphPlotter.getClockUnit());
             this.xUnitTextField.setText(graphPlotter.getClockUnit());
-        }
-        
-        if (yUseTimeAxisCheckBox.isSelected())
-        {
-            g.setYUnitName(graphPlotter.getClockUnit());
-            this.yUnitTextField.setText(graphPlotter.getClockUnit());
         }
     }
     
@@ -753,8 +757,9 @@ class Graph extends JComponent implements ComponentListener
     int yOrigin;
     
     int layout = Graph.AUTO;
-    
-    int scale;
+
+    int xScale;
+    int yScale;
     
     final static int PADDING = 20;
     final static BasicStroke axisStroke;
@@ -793,27 +798,30 @@ class Graph extends JComponent implements ComponentListener
      * @param x
      * @param y
      * @param layout 
-     * @param scale
+     * @param xScale
+     * @param yScale
      */
-    public Graph (Axis x, Axis y, int layout, int scale)
+    public Graph (Axis x, Axis y, int layout, int xScale, int yScale)
     {
         this.x = x;
         this.y = y;
         this.layout = layout;
-        this.scale = scale;
+        this.xScale = xScale;
+        this.yScale = yScale;
     }
     
     /**
      * Constructor for class Graph. Builds a Graph out of two Axis.
      * Layout will be set to default: AUTO.
-     * Scale will be set to default: AUTO.
+     * X Axis scale will be set to default: 1.
+     * Y Axis scale will be set to default: AUTO.
      * 
      * @param x X Axis
      * @param y Y Axis
      */
     public Graph(Axis x, Axis y)
     {
-        this(x, y, Graph.AUTO, Graph.AUTO);
+        this(x, y, Graph.AUTO, 1, Graph.AUTO);
     }
     
     /**
@@ -883,18 +891,18 @@ class Graph extends JComponent implements ComponentListener
         }
         
         // If scale auto (scale == 0), find right scale
-        float yScale = scale;
-        if (scale == Graph.AUTO)
+        float actualYScale = this.yScale;
+        if (this.yScale == Graph.AUTO)
         {
-            yScale = 1.0f;
+            actualYScale = 1.0f;
             switch (axisLayout)
             {
                 case Graph.POSITIVE:
                     for (int i = 0; i < ydata.size(); i++)
                     {
-                        if (ydata.get(i) * (GRID_DISTANCE/yScale) > DATA_HEIGHT)
+                        if (ydata.get(i) * (GRID_DISTANCE/actualYScale) > DATA_HEIGHT)
                         {
-                            yScale++;
+                            actualYScale++;
                             i--;
                         }
                     }
@@ -903,9 +911,9 @@ class Graph extends JComponent implements ComponentListener
                 case Graph.NEGATIVE:
                     for (int i = 0; i < ydata.size(); i++)
                     {
-                        if (ydata.get(i) * (GRID_DISTANCE/yScale) < (-1*DATA_HEIGHT))
+                        if (ydata.get(i) * (GRID_DISTANCE/actualYScale) < (-1*DATA_HEIGHT))
                         {
-                            yScale++;
+                            actualYScale++;
                             i--;
                         }
                     }
@@ -914,9 +922,9 @@ class Graph extends JComponent implements ComponentListener
                 case Graph.BOTH:
                     for (int i = 0; i < ydata.size(); i++)
                     {
-                        if (ydata.get(i) * (GRID_DISTANCE/yScale) > DATA_HEIGHT/2 || ydata.get(i) * (GRID_DISTANCE/yScale) < (-1*DATA_HEIGHT/2))
+                        if (ydata.get(i) * (GRID_DISTANCE/actualYScale) > DATA_HEIGHT/2 || ydata.get(i) * (GRID_DISTANCE/actualYScale) < (-1*DATA_HEIGHT/2))
                         {
-                            yScale++;
+                            actualYScale++;
                             i--;
                         }
                     }
@@ -977,12 +985,12 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int)yScale),
-                    xOrigin - (10 + ((Integer.toString((int)yScale).length() >= 4 ? 3 : Integer.toString((int)yScale).length())-1)*5),
+                g2d.drawString(Integer.toString((int)actualYScale), // y Axis
+                    xOrigin - (10 + ((Integer.toString((int)actualYScale).length() >= 4 ? 3 : Integer.toString((int)actualYScale).length())-1)*5),
                     yOrigin - GRID_DISTANCE + 2.5f
                 );
-                g2d.drawString(Integer.toString((int)yScale),
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int)yScale).length(),
+                g2d.drawString(Integer.toString((int)xScale), // x Axis
+                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int)xScale).length(),
                     yOrigin + 12.5f
                 );
             break;
@@ -1017,12 +1025,12 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int) yScale),
-                    xOrigin - (10 + ((Integer.toString((int) yScale).length() >= 4 ? 3 : Integer.toString((int) yScale).length())-1)*5),
+                g2d.drawString(Integer.toString((int) actualYScale), // y Axis
+                    xOrigin - (10 + ((Integer.toString((int) actualYScale).length() >= 4 ? 3 : Integer.toString((int) actualYScale).length())-1)*5),
                     yOrigin + GRID_DISTANCE + 2.5f
                 );
-                g2d.drawString(Integer.toString((int) yScale),
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) yScale).length(),
+                g2d.drawString(Integer.toString((int) xScale), // x Axis
+                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) xScale).length(),
                     yOrigin - 4.0f
                 );
             break;
@@ -1059,12 +1067,12 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int) yScale),
-                    xOrigin - (10 + ((Integer.toString((int) yScale).length() >= 4 ? 3 : Integer.toString((int) yScale).length())-1)*5),
+                g2d.drawString(Integer.toString((int) actualYScale), // y Axis
+                    xOrigin - (10 + ((Integer.toString((int) actualYScale).length() >= 4 ? 3 : Integer.toString((int) actualYScale).length())-1)*5),
                     yOrigin - GRID_DISTANCE + 2.5f
                 );
-                g2d.drawString(Integer.toString((int) yScale),
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) yScale).length(),
+                g2d.drawString(Integer.toString((int) xScale), // x Axis
+                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) xScale).length(),
                     this.getHeight() - PADDING + 12.5f
                 );
             break;
@@ -1074,11 +1082,11 @@ class Graph extends JComponent implements ComponentListener
         if (xdata.size() > 0)
         {
             // Check if all datapoints fit into the graph
-            if (xdata.get(xdata.size() - 1) - xdata.get(0) > data_width) // True if they dont
+            if ((xdata.get(xdata.size() - 1) - xdata.get(0)) * (GRID_DISTANCE/(float)xScale) > data_width) // True if they dont
             {
                 for (int i = 0; i < xdata.size(); i++)
                 {
-                    if (xdata.get(xdata.size() - 1) - xdata.get(i) <= data_width)
+                    if (((xdata.get(xdata.size() - 1) - xdata.get(i))) * (GRID_DISTANCE/(float)xScale) <= data_width)
                     {
                         break;
                     }
@@ -1097,8 +1105,8 @@ class Graph extends JComponent implements ComponentListener
 
             for (int i = 0; i < xdata.size(); i++)
             {
-                dxdata[i] = xOrigin + xdata.get(i) - xdata.get(0);
-                dydata[i] = (int) (yOrigin - ydata.get(i) * (GRID_DISTANCE/yScale));
+                dxdata[i] = (int) (xOrigin + (xdata.get(i) - xdata.get(0)) * (GRID_DISTANCE/(float)xScale));
+                dydata[i] = (int) (yOrigin - ydata.get(i) * (GRID_DISTANCE/actualYScale));
                 
                 // Check y height
                 if (dydata[i] < PADDING)
@@ -1231,7 +1239,7 @@ class Graph extends JComponent implements ComponentListener
     }
     
     /**
-     * Setter for graph scaling value.
+     * Setter of y axis scaling value.
      * Scaling value helps keep points visible (scales y value).
      * 
      * 0: auto scaling
@@ -1239,9 +1247,20 @@ class Graph extends JComponent implements ComponentListener
      * @param scale
      * @return 
      */
-    public void setScale(int scale)
+    public void setYScale(int scale)
     {
-        this.scale = scale;
+        this.yScale = scale;
+        this.repaint();
+    }
+    
+    /**
+     * Setter of x axis scaling value.
+     * 
+     * @param scale 
+     */
+    public void setXScale(int scale)
+    {
+        this.xScale = scale;
         this.repaint();
     }
 

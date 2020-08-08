@@ -1295,9 +1295,9 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             }
             
             // Update clock
-            if (lastClockUpdate + updateClockInterval <= System.currentTimeMillis())
+            if (timerStartedAt != 0)
             {
-                if (timerStartedAt != 0)
+                if (lastClockUpdate + updateClockInterval <= System.currentTimeMillis())
                 {
                     switch (timeAxisUnitComboBox.getSelectedIndex())
                     {
