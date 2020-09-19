@@ -81,6 +81,8 @@ public class GraphPanel extends JPanel implements ComponentListener
     final public static int GRAPH_WIDTH = 400;
     final public static int GRAPH_HEIGHT = 200;
     
+    Integer bufferedX, bufferedY;
+    
     {
         super.addComponentListener(this);
     }
@@ -659,7 +661,7 @@ public class GraphPanel extends JPanel implements ComponentListener
     }
     
     /**
-     *  Puts data on graph
+     *  Puts data on graph.
      * 
      * @param x
      * @param y 
@@ -670,7 +672,7 @@ public class GraphPanel extends JPanel implements ComponentListener
     }
     
     /**
-     * Puts data on graph. Y value taken from clock.
+     * Puts data on graph. X value taken from clock.
      * 
      * @param y 
      */
@@ -679,6 +681,47 @@ public class GraphPanel extends JPanel implements ComponentListener
         if (xUseTimeAxisCheckBox.isSelected())
         {
             g.put((int)graphPlotter.getTimeXValue(), y);
+        }
+    }
+    
+    /**
+     * Places an x value in buffer. Buffer will be written to graph when
+     * an according y value is also placed in the buffer.
+     * 
+     * @param x 
+     */
+    public synchronized void putBufferedDataX(int x)
+    {
+        bufferedX = x;
+        
+        if (bufferedY != null)
+        {
+            this.putData(bufferedX, bufferedY);
+            bufferedX = null;
+            bufferedY = null;
+        }
+    }
+    
+    /**
+     * Places a y value in buffer. Buffer will be written to graph when
+     * an according x value is also placed in the buffer.
+     * 
+     * @param y
+     */
+    public synchronized void putBufferedDataY(int y)
+    {
+        bufferedY = y;
+        
+        if (xUseTimeAxisCheckBox.isSelected())
+        {
+            this.putData(bufferedY);
+            bufferedY = null;
+        }
+        else if (bufferedX != null)
+        {
+            this.putData(bufferedX, bufferedY);
+            bufferedX = null;
+            bufferedY = null;
         }
     }
     
@@ -698,6 +741,31 @@ public class GraphPanel extends JPanel implements ComponentListener
     public synchronized int getTimeAxisX()
     {
         return (int) graphPlotter.getTimeXValue();
+    }
+    
+    /**
+     * Returns name of processing variable name used on X axis.
+     * 
+     * @return 
+     */
+    public String getXAxisVariableName()
+    {
+        if (xUseTimeAxisCheckBox.isSelected())
+        {
+            return null;
+        }
+        
+        return (String) xAxisComboBox.getSelectedItem();
+    }
+    
+    /**
+     * Returns name of processing variable name used on Y axis.
+     * 
+     * @return 
+     */
+    public String getYAxisVariableName()
+    {
+        return (String) yAxisComboBox.getSelectedItem();
     }
 
     @Override

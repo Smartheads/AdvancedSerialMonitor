@@ -652,10 +652,10 @@
                           <Data value="1"/>
                           <Data value="2"/>
                         </Column>
-                        <Column editable="true" title="Variable size (bytes)" type="java.lang.Integer">
-                          <Data value="1"/>
-                          <Data value="1"/>
-                          <Data value="1"/>
+                        <Column editable="true" title="Variable size (bytes)" type="java.lang.Object">
+                          <Data value="uint8_t"/>
+                          <Data value="uint8_t"/>
+                          <Data value="uint8_t"/>
                         </Column>
                         <Column editable="true" title="Preprocessing rule" type="java.lang.String"/>
                         <Column editable="true" title="Raw value (example)" type="java.lang.Double">
@@ -810,11 +810,7 @@
     <Container class="javax.swing.JScrollPane" name="contentScrollPane">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-            <LineBorder>
-              <Color PropertyName="color" blue="33" green="0" red="ff" type="rgb"/>
-            </LineBorder>
-          </Border>
+          <Border info="null"/>
         </Property>
       </Properties>
       <Constraints>

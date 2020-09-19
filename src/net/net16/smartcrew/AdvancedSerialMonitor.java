@@ -135,7 +135,14 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
         // Update graphplotter
         if (gp != null)
         { 
-            gp.SerialEvent(event);
+            try
+            {
+                gp.SerialEvent(event);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
             
         // If decodeCharset equals null, don't decode numbers

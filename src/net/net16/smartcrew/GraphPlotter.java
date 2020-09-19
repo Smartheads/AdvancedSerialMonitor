@@ -21,7 +21,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -43,6 +42,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     volatile ArrayList<GraphPanel> graphs;
     public DefaultTableModel processingModel;
     DefaultTableModel dataPacketModel;
+    javax.swing.JComboBox variableTypeComboBox;
     
     ArrayList<Byte> incommingPacket;
     int sizeofPacket = 3;
@@ -95,6 +95,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         DefaultTableCellRenderer r4 = new DefaultTableCellRenderer();
         r4.setToolTipText("Example input value to test processing rule. Transformed value visible in \"Formatted value\" column.");
         processingTable.getColumnModel().getColumn(EXAMPLE_VALUE_COL).setCellRenderer(r4);
+        
+        variableTypeComboBox = new javax.swing.JComboBox();
+        variableTypeComboBox.addItem("uint8_t");
+        variableTypeComboBox.addItem("int8_t");
+        variableTypeComboBox.addItem("uint16_t");
+        variableTypeComboBox.addItem("int16_t");
+        
+        processingTable.getColumnModel().getColumn(VARIABLE_SIZE_COL).setCellEditor(new javax.swing.DefaultCellEditor(variableTypeComboBox));
         
         customValueDelimiterTextField.setVisible(false);
         
@@ -202,6 +210,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     
     public void SerialEvent (SerialPortEvent e)
     {
+        // Add recieved bytes to arraylist
         for (byte b : e.getReceivedData())
         {
             incommingPacket.add(b);
@@ -215,17 +224,16 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 // Parse packet
                 parseIncommingPacket();
 
-                if (incommingPacket.size() > sizeofPacket)
+                // Delete already displayed data from packet buffer
+                for (int i = 0; i < sizeofPacket; i++)
                 {
-                    Byte[] buff = (Byte[]) incommingPacket.subList(sizeofPacket-1, incommingPacket.size()-1).toArray();
-                    incommingPacket.clear();
-                    incommingPacket.addAll(Arrays.asList(buff));
+                    incommingPacket.remove(0);
                 }
             }
         }
         else
         {
-            System.out.println("Unsupported feature actived...");
+            System.out.println("Unsupported feature activated...");
         }
     }
     
@@ -234,7 +242,57 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
      */
     void parseIncommingPacket()
     {
-        
+        // Loop through processing variables
+        for (int i = 0; i < processingModel.getRowCount(); i++)
+        {
+            int pos = (int) processingModel.getValueAt(i, VARIABLE_POSITION_COL);
+            int val = 0;
+            
+            switch ((String)processingModel.getValueAt(i, VARIABLE_SIZE_COL))
+            {
+                case "uint8_t":
+                    val = incommingPacket.get(pos);
+                    if ((int) val < 0)
+                    {
+                        val += 256;
+                    }
+                break;
+                
+                case "int8_t":
+                    val = incommingPacket.get(pos);
+                break;
+                
+                case "uint16_t":
+                    val = (int) ((incommingPacket.get(pos) << 8) & 0x0000ff00) | (incommingPacket.get(pos+1) & 0x000000ff);
+                break;
+                
+                case "int16_t":
+                    val = (int) ((incommingPacket.get(pos) << 8) | (incommingPacket.get(pos+1)));
+                break;
+                
+                default:
+                    
+                break;
+            }
+            
+            for (GraphPanel g : graphs)
+            {
+                // Check x axis variables
+                if (g.getXAxisVariableName() != null) // Time axis not selected
+                {
+                    if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(g.getXAxisVariableName()))
+                    {
+                        g.putBufferedDataX(val);
+                    }
+                }
+
+                // Check y axis variables
+                if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(g.getYAxisVariableName()))
+                {
+                    g.putBufferedDataY(val);
+                }
+            }
+        }
     }
     
     /**
@@ -292,6 +350,27 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             default:
                 return "";
         }
+    }
+    
+    /**
+     * Returns size of variable in a given row.
+     * 
+     * @param row
+     * @return 
+     */
+    int getVariableSize(int row)
+    {
+        String selectedType = (String) processingModel.getValueAt(row, VARIABLE_SIZE_COL);
+        if (selectedType.equals("uint8_t") || selectedType.equals(("int8_t")))
+        {
+            return 1;
+        }
+        else if (selectedType.equals("uint16_t") || selectedType.equals("int16_t"))
+        {
+            return 2;
+        }
+        
+        return 1;
     }
 
     /**
@@ -695,16 +774,16 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
         processingTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"var1",  new Integer(0),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
-                {"var2",  new Integer(1),  new Integer(1), null,  new Double(0.0),  new Double(0.0)},
-                {"var3",  new Integer(2),  new Integer(1), null,  new Double(0.0),  new Double(0.0)}
+                {"var1",  new Integer(0), "uint8_t", null,  new Double(0.0),  new Double(0.0)},
+                {"var2",  new Integer(1), "uint8_t", null,  new Double(0.0),  new Double(0.0)},
+                {"var3",  new Integer(2), "uint8_t", null,  new Double(0.0),  new Double(0.0)}
             },
             new String [] {
                 "Variable name", "Position in packet", "Variable size (bytes)", "Preprocessing rule", "Raw value (example)", "Formatted value"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
+                java.lang.String.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean [] {
                 true, true, true, true, true, false
@@ -819,7 +898,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 10);
         getContentPane().add(processingTablePanel, gridBagConstraints);
 
-        contentScrollPane.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 51)));
+        contentScrollPane.setBorder(null);
 
         contentPanel.setLayout(new java.awt.GridBagLayout());
         contentScrollPane.setViewportView(contentPanel);
@@ -992,6 +1071,8 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         }
         updateDeleteVariableComboBox();
         
+        this.processingTablePropertyChange(null);
+        
         graphs.forEach((gp) -> {
             gp.updateVariableComboBoxes();
         });
@@ -1058,7 +1139,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             }
             
             // Don't allow number size to be empty or smaller equal to 0
-            if (processingModel.getValueAt(i, VARIABLE_SIZE_COL) != null)
+            /*if (processingModel.getValueAt(i, VARIABLE_SIZE_COL) != null)
             {
                 if ((int) processingModel.getValueAt(i, VARIABLE_SIZE_COL) <= 0)
                 {
@@ -1068,7 +1149,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             else
             {
                 processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
-            }
+            }*/
         }
         
         // Update data packet model table
@@ -1090,9 +1171,9 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             data[lpos][0] = lpos;
             
             // Keep largest variable size
-            if (data[lpos][1] <(int) processingModel.getValueAt(e, VARIABLE_SIZE_COL))
+            if (data[lpos][1] < this.getVariableSize(e))
             {
-                data[lpos][1] = (int) processingModel.getValueAt(e, VARIABLE_SIZE_COL);
+                data[lpos][1] = this.getVariableSize(e);
             }
         }
 
