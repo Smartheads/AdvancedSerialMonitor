@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.net16.smartcrew;
+package com.dobsinalia.smartcrew;
 
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.awt.event.WindowAdapter;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import net.net16.smartcrew.plotter.GraphPanel;
+import com.dobsinalia.smartcrew.plotter.GraphPanel;
 
 /**
  *
@@ -44,7 +44,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     DefaultTableModel dataPacketModel;
     javax.swing.JComboBox variableTypeComboBox;
     
-    ArrayList<Byte> incommingPacket;
+    ArrayList<Byte> incomingPacket;
     int sizeofPacket = 3;
     
     volatile long timerStartedAt = 0; // in millis
@@ -55,14 +55,15 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private final AdvancedSerialMonitor asm;
     
     {
-        incommingPacket = new ArrayList<>();
+        incomingPacket = new ArrayList<>();
     }
 
     /**
      * Creates new form SerialPlotter
      * @param asm
      */
-    public GraphPlotter(AdvancedSerialMonitor asm) {
+    public GraphPlotter(AdvancedSerialMonitor asm)
+    {
         initComponents();
         
         super.addWindowListener(new WindowAdapter()
@@ -103,6 +104,8 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         variableTypeComboBox.addItem("int16_t");
         
         processingTable.getColumnModel().getColumn(VARIABLE_SIZE_COL).setCellEditor(new javax.swing.DefaultCellEditor(variableTypeComboBox));
+        
+        this.updateDeleteVariableComboBox();
         
         customValueDelimiterTextField.setVisible(false);
         
@@ -151,7 +154,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private void updateDeleteVariableComboBox()
     {
         deleteVariableComboBox.removeAllItems();
-        for (int i = 0; i < processingModel.getRowCount(); i++)
+        for (int i = processingModel.getRowCount()-1; i >= 0; i--)
         {
             deleteVariableComboBox.addItem((String) processingModel.getValueAt(i, VARIABLE_NAME_COL));
         }
@@ -213,45 +216,78 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         // Add recieved bytes to arraylist
         for (byte b : e.getReceivedData())
         {
-            incommingPacket.add(b);
+            incomingPacket.add(b);
         }
         
         // Switch packet delimiter
         if (((String)valueDelimiterComboBox.getSelectedItem()).equals("Based on size"))
         {
-            if(incommingPacket.size() >= sizeofPacket)
+            if(incomingPacket.size() >= sizeofPacket)
             {
                 // Parse packet
-                parseIncommingPacket();
+                parseIncomingPacket();
 
                 // Delete already displayed data from packet buffer
                 for (int i = 0; i < sizeofPacket; i++)
                 {
-                    incommingPacket.remove(0);
+                    incomingPacket.remove(0);
                 }
             }
         }
         else
-        {
-            System.out.println("Unsupported feature activated...");
+        {   
+            // Check to see if delimeter is recieved
+            for (int i = 0; i < incomingPacket.size(); i++)
+            {
+                if (incomingPacket.get(i) == this.getDelimiter())
+                {
+                    // Check recieved packet size
+                    if (i == sizeofPacket) // Delim is not counted in sizeofPacket (sizeofPacket-1)+1
+                    {
+                        parseIncomingPacket();
+                        
+                        // Delete already displayed data from packet buffer
+                        for (int j = 0; j < sizeofPacket+1; j++) // Clear delim too
+                        {
+                            incomingPacket.remove(0);
+                        }
+                    }
+                    else
+                    {
+                        // Clear incomplete packet
+                        for (int j = 0; j < i+1; j++) // Clear delim too
+                        {
+                            incomingPacket.remove(0);
+                        }
+                    }
+                }
+            }
         }
     }
     
     /**
      * Parses the buffered data packet.
      */
-    void parseIncommingPacket()
+    void parseIncomingPacket()
     {
         // Loop through processing variables
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
-            int pos = (int) processingModel.getValueAt(i, VARIABLE_POSITION_COL);
-            int val = 0;
+            // Get starting position of variable in packet
+            int pos = 0; //= (int) processingModel.getValueAt(i, VARIABLE_POSITION_COL);
+            for (int j = 0; j < processingModel.getRowCount(); j++)
+            {
+                if ((int) processingModel.getValueAt(j, VARIABLE_POSITION_COL) < (int) processingModel.getValueAt(i, VARIABLE_POSITION_COL))
+                {
+                    pos += this.getVariableSize(j);
+                }
+            }
             
+            int val = 0;
             switch ((String)processingModel.getValueAt(i, VARIABLE_SIZE_COL))
             {
                 case "uint8_t":
-                    val = incommingPacket.get(pos);
+                    val = incomingPacket.get(pos);
                     if ((int) val < 0)
                     {
                         val += 256;
@@ -259,15 +295,19 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 break;
                 
                 case "int8_t":
-                    val = incommingPacket.get(pos);
+                    val = incomingPacket.get(pos);
                 break;
                 
                 case "uint16_t":
-                    val = (int) ((incommingPacket.get(pos) << 8) & 0x0000ff00) | (incommingPacket.get(pos+1) & 0x000000ff);
+                    val = (int) ((incomingPacket.get(pos) << 8) & 0x0000ff00) | (incomingPacket.get(pos+1) & 0x000000ff);
                 break;
                 
                 case "int16_t":
-                    val = (int) ((incommingPacket.get(pos) << 8) | (incommingPacket.get(pos+1)));
+                   char a = (char) (incomingPacket.get(pos) & 0xFF);
+                   char b = (char) (incomingPacket.get(pos+1) & 0xFF);
+                   short s = (short) ((a << 8) | b);
+                   val = new Short(s).intValue();
+                   System.out.println(val);
                 break;
                 
                 default:
@@ -372,6 +412,37 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         
         return 1;
     }
+    
+    /**
+     * Returns selected delimiter of incoming packets.
+     * @return 
+     */
+    char getDelimiter()
+    {
+        switch(valueDelimiterComboBox.getSelectedIndex())
+        {
+            case 0: // Based on size
+                return '\0';
+                
+            case 1: // Comma
+                return ',';
+                
+            case 2: // Tabulator
+                return '\t';
+            
+            case 3: // Semi-colin
+                return ';';
+           
+            case 4: // Newline
+                return '\n';
+                
+            case 5: // Carrige-return
+                return '\r';
+                
+            default: // Other
+                return customValueDelimiterTextField.getText().charAt(0);
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -443,7 +514,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         setTitle("Serial Graph Plotter");
         setIconImage(new ImageIcon(getClass().getResource("/line_graph.png")).getImage());
         setMinimumSize(new java.awt.Dimension(850, 500));
-        setPreferredSize(new java.awt.Dimension(750, 680));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+2));
@@ -837,7 +907,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             }
         });
 
-        deleteVariableComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "var1", "var2" }));
+        deleteVariableComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "var1" }));
         deleteVariableComboBox.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
             public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
             }
@@ -1337,6 +1407,8 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         this.setSize(this.getMinimumSize());
     }//GEN-LAST:event_shrinkMenuItemActionPerformed
 
+    // Variables declaration - do not modify
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem alwaysOnTopMenuItem;
     private javax.swing.JButton bottomAddGraphButton;
@@ -1394,8 +1466,10 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     private javax.swing.JComboBox<String> valueDelimiterComboBox;
     private javax.swing.JMenu windowMenu;
     // End of variables declaration//GEN-END:variables
-
+    // </editor-fold>
+    
     @Override
+    @SuppressWarnings("")
     public void run()
     {
         DecimalFormat df = new DecimalFormat("0.00");

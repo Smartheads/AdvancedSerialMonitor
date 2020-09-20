@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.net16.smartcrew;
+package com.dobsinalia.smartcrew;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
@@ -128,8 +128,9 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
     }
 
     @Override
+    @SuppressWarnings("CallToPrintStackTrace")
     public void serialEvent(SerialPortEvent event)
-    {  
+    {
         String data;
         
         // Update graphplotter
@@ -209,18 +210,20 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
                         incommingBuffer[0] = cbuff[cbuff.length-1];
                     }
                     
-                    for (int i = 0; i < count; i += 2)
+                    for (int i = 0; i < count*2; i += 2)
                     {
                         if (numberSignednessComboBox.getSelectedIndex() == 0)
                         {
                             // Signed
-                            short x = (short) ((cbuff[i] << 8) | (cbuff[i+1]));
+                            char a = (char) (cbuff[i] & 0xFF);
+                            char b = (char) (cbuff[i+1] & 0xFF);
+                            short x = (short) ((a << 8) | b);
                             sb.append(x);
                         }
                         else
                         {
                             // Unsigned
-                            int x = ((cbuff[0] << 8) & 0x0000ff00) | (cbuff[1] & 0x000000ff);
+                            int x = ((cbuff[i] << 8) & 0x0000ff00) | (cbuff[i+1] & 0x000000ff);
                             sb.append(x);
                         }
                         sb.append(" | ");
@@ -1146,7 +1149,7 @@ public final class AdvancedSerialMonitor extends JFrame implements SerialPortDat
 
         jMenu2.setText("Window");
 
-        alwaysOnTopCheckBox.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK));
+        alwaysOnTopCheckBox.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         alwaysOnTopCheckBox.setText("Always on top");
         alwaysOnTopCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

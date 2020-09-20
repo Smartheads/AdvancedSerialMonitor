@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.net16.smartcrew.plotter;
+package com.dobsinalia.smartcrew.plotter;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -44,7 +44,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
-import net.net16.smartcrew.GraphPlotter;
+import com.dobsinalia.smartcrew.GraphPlotter;
 
 /**
  *
@@ -1176,14 +1176,7 @@ class Graph extends JComponent implements ComponentListener
     {
         xdata.add(x);
         ydata.add(y);
-        if (layout == Graph.BOTH)
-        {
-            this.repaint();
-        }
-        else
-        {
-            this.repaint(PADDING, PADDING, data_width, DATA_HEIGHT);
-        }
+        this.repaint();
     }
     
     /**
