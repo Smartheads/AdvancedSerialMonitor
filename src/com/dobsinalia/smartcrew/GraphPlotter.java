@@ -206,9 +206,9 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
      * @param format
      * @return 
      */
-    double formatValue(double value, String format)
+    float formatValue(int value, String format)
     {
-        return 0;
+        return value;
     }
     
     public void SerialEvent (SerialPortEvent e)
@@ -307,7 +307,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                    char b = (char) (incomingPacket.get(pos+1) & 0xFF);
                    short s = (short) ((a << 8) | b);
                    val = new Short(s).intValue();
-                   System.out.println(val);
                 break;
                 
                 default:
@@ -322,14 +321,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 {
                     if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(g.getXAxisVariableName()))
                     {
-                        g.putBufferedDataX(val);
+                        g.putBufferedDataX(formatValue(val, (String)processingModel.getValueAt(i, PROCESSING_RULE_COL)));
                     }
                 }
 
                 // Check y axis variables
                 if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(g.getYAxisVariableName()))
                 {
-                    g.putBufferedDataY(val);
+                    g.putBufferedDataY(formatValue(val, (String)processingModel.getValueAt(i, PROCESSING_RULE_COL)));
                 }
             }
         }
@@ -844,16 +843,16 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
 
         processingTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"var1",  new Integer(0), "uint8_t", null,  new Double(0.0),  new Double(0.0)},
-                {"var2",  new Integer(1), "uint8_t", null,  new Double(0.0),  new Double(0.0)},
-                {"var3",  new Integer(2), "uint8_t", null,  new Double(0.0),  new Double(0.0)}
+                {"var1",  new Integer(0), "uint8_t", "#",  new Integer(0), null},
+                {"var2",  new Integer(1), "uint8_t", "#",  new Integer(0), null},
+                {"var3",  new Integer(2), "uint8_t", "#",  new Integer(0), null}
             },
             new String [] {
                 "Variable name", "Position in packet", "Variable size (bytes)", "Preprocessing rule", "Raw value (example)", "Formatted value"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Double.class, java.lang.Double.class
+                java.lang.String.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Integer.class, java.lang.Float.class
             };
             boolean[] canEdit = new boolean [] {
                 true, true, true, true, true, false
@@ -1074,9 +1073,10 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
         Object[] o = new Object[processingModel.getColumnCount()];
         o[VARIABLE_NAME_COL] = getNewProcessingVariableName();
         o[EXAMPLE_VALUE_COL] = 0;
+        o[PROCESSING_RULE_COL] = "#";
         o[FORMATTED_VALUE_COL] = 0;
         o[VARIABLE_POSITION_COL] = 0;
-        o[VARIABLE_SIZE_COL] = 1;
+        o[VARIABLE_SIZE_COL] = "uint8_t";
         processingModel.addRow(o);
     }//GEN-LAST:event_newVariableButtonActionPerformed
 
@@ -1149,18 +1149,26 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_deleteVariableButtonActionPerformed
 
     private void processingTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_processingTablePropertyChange
-        // TODO add your handling code here:
-        if (processingModel == null)
-        {
-            return;
-        }
+        if (processingModel == null) return;
         
         for (int i = 0; i < processingModel.getRowCount(); i++)
         {
             // Dont allow for variable name to be left empty
             if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(""))
             {
-                processingModel.setValueAt(getNewProcessingVariableName(), i, VARIABLE_NAME_COL);
+                processingModel.setValueAt(this.getNewProcessingVariableName(), i, VARIABLE_NAME_COL);
+            }
+            
+            // Dont allow variabel name conflicts
+            for (int j = processingModel.getRowCount()-1; j >= 0; j--)
+            {
+                if (j == i) continue;
+                if (processingModel.getValueAt(i, VARIABLE_NAME_COL).equals(
+                    processingModel.getValueAt(j, VARIABLE_NAME_COL)))
+                {
+                    processingModel.setValueAt(this.getNewProcessingVariableName(), j, VARIABLE_NAME_COL);
+                    break;
+                }
             }
             
             // Compute formatted value when example value or processing rule changed
@@ -1170,7 +1178,7 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
                 {
                     processingModel.setValueAt(
                         formatValue(
-                                (double) processingModel.getValueAt(i, EXAMPLE_VALUE_COL),
+                                (int) processingModel.getValueAt(i, EXAMPLE_VALUE_COL),
                                 (String) processingModel.getValueAt(i, PROCESSING_RULE_COL)
                         ),
                         i,
@@ -1207,19 +1215,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
             {
                 processingModel.setValueAt(0, i, VARIABLE_POSITION_COL);
             }
-            
-            // Don't allow number size to be empty or smaller equal to 0
-            /*if (processingModel.getValueAt(i, VARIABLE_SIZE_COL) != null)
-            {
-                if ((int) processingModel.getValueAt(i, VARIABLE_SIZE_COL) <= 0)
-                {
-                    processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
-                }
-            }
-            else
-            {
-                processingModel.setValueAt(1, i, VARIABLE_SIZE_COL);
-            }*/
         }
         
         // Update data packet model table
@@ -1308,7 +1303,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_processingTablePropertyChange
 
     private void valueDelimiterComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_valueDelimiterComboBoxActionPerformed
-        // TODO add your handling code here:
         if (((String)valueDelimiterComboBox.getSelectedItem()).equals("Other"))
         {
             customValueDelimiterTextField.setVisible(true);
@@ -1320,7 +1314,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_valueDelimiterComboBoxActionPerformed
 
     private void customValueDelimiterTextFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_customValueDelimiterTextFieldKeyTyped
-        // TODO add your handling code here:
         if ((customValueDelimiterTextField.getText() + evt.getKeyChar()).length() > 1)
         {
             evt.consume();
@@ -1328,17 +1321,14 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_customValueDelimiterTextFieldKeyTyped
 
     private void fileMenuCloseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuCloseItemActionPerformed
-        // TODO add your handling code here:
         this.setVisible(false);
     }//GEN-LAST:event_fileMenuCloseItemActionPerformed
 
     private void alwaysOnTopMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_alwaysOnTopMenuItemActionPerformed
-        // TODO add your handling code here:
         this.setAlwaysOnTop(alwaysOnTopMenuItem.isSelected());
     }//GEN-LAST:event_alwaysOnTopMenuItemActionPerformed
 
     private void timeAxisStartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisStartButtonActionPerformed
-        // TODO add your handling code here:
         if (timerStartedAt == 0)
         {
             timerStartedAt = System.currentTimeMillis();
@@ -1358,7 +1348,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_timeAxisStartButtonActionPerformed
 
     private void timeAxisUnitComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisUnitComboBoxActionPerformed
-        // TODO add your handling code here:
         switch (timeAxisUnitComboBox.getSelectedIndex())
         {
             case 0: // hrs
@@ -1385,7 +1374,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_timeAxisUnitComboBoxActionPerformed
 
     private void timeAxisRestartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisRestartButtonActionPerformed
-        // TODO add your handling code here:
         timerStartedAt = System.currentTimeMillis();
         for (GraphPanel gp : graphs)
         {
@@ -1394,7 +1382,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_timeAxisRestartButtonActionPerformed
 
     private void timeAxisStopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timeAxisStopButtonActionPerformed
-        // TODO add your handling code here:
         timerStoppedAt = System.currentTimeMillis();
         clockThread.interrupt();
         timeAxisStartButton.setEnabled(true);
@@ -1403,7 +1390,6 @@ public class GraphPlotter extends javax.swing.JFrame implements Runnable
     }//GEN-LAST:event_timeAxisStopButtonActionPerformed
 
     private void shrinkMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shrinkMenuItemActionPerformed
-        // TODO add your handling code here:
         this.setSize(this.getMinimumSize());
     }//GEN-LAST:event_shrinkMenuItemActionPerformed
 

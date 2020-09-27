@@ -672,6 +672,18 @@ public class GraphPanel extends JPanel implements ComponentListener
     }
     
     /**
+     * Overloaded method putData.
+     * 
+     * @see putData(int x, int y)
+     * @param x
+     * @param y 
+     */
+    public synchronized void putData(float x, float y)
+    {
+        g.put(Math.round(x), Math.round(y));
+    }
+    
+    /**
      * Puts data on graph. X value taken from clock.
      * 
      * @param y 
@@ -682,6 +694,15 @@ public class GraphPanel extends JPanel implements ComponentListener
         {
             g.put((int)graphPlotter.getTimeXValue(), y);
         }
+    }
+    
+    /**
+     * 
+     * @param y 
+     */
+    public synchronized void putData(float y)
+    {
+        this.putData(Math.round(y));
     }
     
     /**
@@ -700,6 +721,15 @@ public class GraphPanel extends JPanel implements ComponentListener
             bufferedX = null;
             bufferedY = null;
         }
+    }
+    
+    /**
+     * 
+     * @param x 
+     */
+    public synchronized void putBufferedDataX(float x)
+    {
+        this.putBufferedDataX(Math.round(x));
     }
     
     /**
@@ -723,6 +753,15 @@ public class GraphPanel extends JPanel implements ComponentListener
             bufferedX = null;
             bufferedY = null;
         }
+    }
+    
+    /**
+     * 
+     * @param y 
+     */
+    public synchronized void putBufferedDataY(float y)
+    {
+        this.putBufferedDataY(Math.round(y));
     }
     
     /**
@@ -885,6 +924,7 @@ class Graph extends JComponent implements ComponentListener
      * @param g 
      */
     @Override
+    @SuppressWarnings("LocalVariableHidesMemberVariable")
     public synchronized void paintComponent(Graphics g)
     {
         int axisLayout = this.layout;
@@ -1026,14 +1066,30 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int)actualYScale), // y Axis
-                    xOrigin - (10 + ((Integer.toString((int)actualYScale).length() >= 4 ? 3 : Integer.toString((int)actualYScale).length())-1)*5),
-                    yOrigin - GRID_DISTANCE + 2.5f
-                );
-                g2d.drawString(Integer.toString((int)xScale), // x Axis
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int)xScale).length(),
-                    yOrigin + 12.5f
-                );
+                {   // Y Axis, increment y
+                    int i = 1;
+                    for (float y = yOrigin - GRID_DISTANCE + 2.5f; y > PADDING; y -= 2*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i * actualYScale);
+                        g2d.drawString(Integer.toString(value), // y Axis
+                            xOrigin - (10 + ((Integer.toString(value).length() >= 4 ? 3 : Integer.toString(value).length())-1)*5),
+                            y
+                        );
+                        i += 2;
+                    }
+                }
+                { // X Axis, increment x
+                    int i = 1;
+                    for (float x = xOrigin + GRID_DISTANCE; x < this.getWidth()-PADDING; x += 4*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i * xScale);
+                        g2d.drawString(Integer.toString(value), // x Axis
+                            x - 2.5f * Integer.toString(value).length(),
+                            yOrigin + 12.5f
+                        );
+                        i += 4;
+                    }
+                }
             break;
             
             case Graph.NEGATIVE:
@@ -1066,14 +1122,30 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int) actualYScale), // y Axis
-                    xOrigin - (10 + ((Integer.toString((int) actualYScale).length() >= 4 ? 3 : Integer.toString((int) actualYScale).length())-1)*5),
-                    yOrigin + GRID_DISTANCE + 2.5f
-                );
-                g2d.drawString(Integer.toString((int) xScale), // x Axis
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) xScale).length(),
-                    yOrigin - 4.0f
-                );
+                { // Y Axis, increment y
+                    int i = 1;
+                    for (float y = yOrigin + GRID_DISTANCE + 3.0f; y < this.getHeight() - PADDING; y += 2*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i*actualYScale);
+                        g2d.drawString(Integer.toString(value), // y Axis
+                            xOrigin - (10 + ((Integer.toString(value).length() >= 4 ? 3 : Integer.toString(value).length())-1)*5),
+                            y
+                        );
+                        i += 2;
+                    }
+                }
+                { // X Axis, increment x
+                    int i = 1;
+                    for (float x = xOrigin + GRID_DISTANCE; x < this.getWidth()-PADDING; x += 4*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i*xScale);
+                        g2d.drawString(Integer.toString(value), // x Axis
+                            x - 2.5f * Integer.toString(value).length(),
+                            yOrigin - 4.0f
+                        );
+                        i += 4;
+                    }
+                }
             break;
             
             case Graph.BOTH:
@@ -1108,14 +1180,42 @@ class Graph extends JComponent implements ComponentListener
                 // Render scale
                 g2d.setStroke(gridStroke);
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString(Integer.toString((int) actualYScale), // y Axis
-                    xOrigin - (10 + ((Integer.toString((int) actualYScale).length() >= 4 ? 3 : Integer.toString((int) actualYScale).length())-1)*5),
-                    yOrigin - GRID_DISTANCE + 2.5f
-                );
-                g2d.drawString(Integer.toString((int) xScale), // x Axis
-                    xOrigin + GRID_DISTANCE - 2.5f * Integer.toString((int) xScale).length(),
-                    this.getHeight() - PADDING + 12.5f
-                );
+                {   // Y Axis positive range, increment y
+                    int i = 1;
+                    for (float y = yOrigin - GRID_DISTANCE + 2.5f; y > PADDING; y -= 2*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i * actualYScale);
+                        g2d.drawString(Integer.toString(value), // y Axis
+                            xOrigin - (10 + ((Integer.toString(value).length() >= 4 ? 3 : Integer.toString(value).length())-1)*5),
+                            y
+                        );
+                        i += 2;
+                    }
+                }
+                { // Y Axis negative range, increment y
+                    int i = 1;
+                    for (float y = yOrigin + GRID_DISTANCE + 3.0f; y < this.getHeight() - PADDING; y += 2*GRID_DISTANCE)
+                    {
+                        int value = -Math.round(i*actualYScale);
+                        g2d.drawString(Integer.toString(value), // y Axis
+                            xOrigin - (10 + ((Integer.toString(value).length() >= 4 ? 3 : Integer.toString(value).length())-1)*5),
+                            y
+                        );
+                        i += 2;
+                    }
+                }
+                { // X Axis, increment x
+                    int i = 1;
+                    for (float x = xOrigin + GRID_DISTANCE; x < this.getWidth()-PADDING; x += 4*GRID_DISTANCE)
+                    {
+                        int value = Math.round(i * xScale);
+                        g2d.drawString(Integer.toString(value), // x Axis
+                            x - 2.5f * Integer.toString(value).length(),
+                            this.getHeight() - PADDING + 12.5f
+                        );
+                        i += 4;
+                    }
+                }
             break;
         }
         
@@ -1358,6 +1458,11 @@ class Graph extends JComponent implements ComponentListener
     }
 }
 
+/**
+ * Axis is a class for graph axis.
+ * 
+ * @author Robert Hutter
+ */
 class Axis
 {
     String name;
